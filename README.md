@@ -1,5 +1,5 @@
 ## SAM Workflows
-These are the future replacements for the current workflow-bat's. The presentation-layer is Gooey in advanced mode with each workflow visible as an option in the sidebare.
+This repository contains the future replacements for the current workflow-bat's. The presentation-layer is Gooey in advanced mode with each workflow visible as an option in the sidebare.
 
 #### mypy.ini
 In `mypy.ini`, the per module options should be changed to reflect your module name:
