@@ -1,0 +1,76 @@
+workflow_label: makePdfAccess
+
+infotext: |-
+    Kan lave access versioner for PDF
+    Kan Uploade access versionerne til online host
+unit_list:
+-   unit: unitLoadCSVtoMem
+    unit_outs: ["csvDataTuple->csvData"]
+    csvSrc: {"type": "open-csv", "label":"Kilde csv fil:", "default":".\\csv-files\\exportPdf.csv"}
+-   unit: unitImageMagick
+    unit_ins: ["csvData->loadedCSVs"]
+    
+    overwrite: {"ordering": 2, "type": "boolean", "label":"Overskriv tidligere access billeder:"}
+    
+    ##CHOICES
+    convert_type: PDF
+    take_from_access: true
+    
+    include_watermark: true
+    watermark_white: resources\makeImageAccess\as_logo_white_160x51.png
+    watermark_black: resources\makeImageAccess\as_logo_black_160x51.png
+    
+    ##FORMATS
+    webFormat: jpg
+    largeThreshold: 1920
+    mediumThreshold: 640
+    smallThreshold: 150
+    
+    ##PATHS
+    archive_folder: M:\Borgerservice-Biblioteker\Stadsarkivet\_DIGITALT ARKIV\ark_binary_store
+    access_folder: M:\Borgerservice-Biblioteker\Stadsarkivet\_DIGITALT ARKIV\ark_binary_access\access
+    
+    largePathDir: M:\Borgerservice-Biblioteker\Stadsarkivet\_DIGITALT ARKIV\ark_binary_access\large
+    mediumPathDir: M:\Borgerservice-Biblioteker\Stadsarkivet\_DIGITALT ARKIV\ark_binary_access\medium
+    smallPathDir: M:\Borgerservice-Biblioteker\Stadsarkivet\_DIGITALT ARKIV\ark_binary_access\small
+    
+    ##CSV FORMATING
+    oasid_col: uniqueID
+    oas_dict_col: oasDataJsonEncoded
+    filename_key: filename
+    
+    ##BINARY
+    imageMagick_folder: C:\Program Files\ImageMagick-7.0.2-Q16
+    imageMagick_binary: magick.exe
+    ghostScript_folder: C:\Program Files\gs\gs9.19\bin
+    ghostScript_binary: gswin64c.exe
+-   unit: unitConvertAndCheckExportToUpload
+    unit_ins: ["csvData->loadedCSVs"]
+    unit_outs: ["exportFormat->googleReadyData"]
+    
+    do_upload: {"ordering": 0, "type": "boolean", "label":"Upload til google storage:", "default": true}
+    
+    smallPath: M:\Borgerservice-Biblioteker\Stadsarkivet\_DIGITALT ARKIV\ark_binary_access\small
+    mediumPath: M:\Borgerservice-Biblioteker\Stadsarkivet\_DIGITALT ARKIV\ark_binary_access\medium
+    largePath: M:\Borgerservice-Biblioteker\Stadsarkivet\_DIGITALT ARKIV\ark_binary_access\large
+    accessPath: M:\Borgerservice-Biblioteker\Stadsarkivet\_DIGITALT ARKIV\ark_binary_access\access
+        
+    smallExt: _s.jpg
+    mediumExt: _m.jpg
+    largeExt: _l.jpg
+    accessExt: _c.pdf
+    
+    accessBucket: openaws-access
+    webOnlyBucket: openaws-webonly
+    
+    identifier_colname: uniqueID
+    oas_dict_colname: oasDataJsonEncoded
+    copyright_key: copyright_status
+
+-   unit: unitGoogleStorageConnector
+    unit_ins: ["googleReadyData->uploadData"]
+    csvDest: {"type": "save-csv", "label":"Gemmer til csv fil:", "default":".\\csv-files\\pdfDone.csv"}
+    
+    operation: "UPLOAD"
+    
+    google_credentials: openaws-b43004800aa0.json
