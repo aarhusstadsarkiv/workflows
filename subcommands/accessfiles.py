@@ -25,35 +25,23 @@ class ImageConvertError(Exception):
 # -----------------------------------------------------------------------------
 def _generate_sam_jpgs(
     img_in: Path,
-    img_out: Path,
     quality: int = 80,
-    max_width: int = 4000,
-    max_height: int = 4000,
+    sizes: List = [1920, 640, 150],
     watermark: bool = True,
-) -> str:
+) -> Dict:
 
-    error = ""
+    resp = {}
     try:
-        im: Any = Image.open(img_in)
+        img: Any = Image.open(img_in)
     except UnidentifiedImageError:
-        error = f"Failed to open {img_in} as an image."
+        resp["error"] = f"Failed to open {img_in} as an image."
     except Exception as e:
-        error = f"Error encountered while opening file {img_in}: {e}"
+        resp["error"] = f"Error encountered while opening file {img_in}: {e}"
     else:
-        im.load()
-        # Resize max width/height is smaller than image width/height
-        width, height = im.size
-        scaling = 1
-        if max_width and max_width / width < 1:
-            scaling = max_width / width
-        if max_height and max_height / height < 1:
-            scaling = max_height / height
-        if scaling != 1:
-            new_size = (int(scaling * width), int(scaling * height))
-            im = im.resize(new_size)
+        img.load()
 
-        # JPG image might be rotated
-        if hasattr(im, "_getexif"):  # only present in JPGs
+        # JPG image might be rotated. Fix, if rotatet.
+        if hasattr(img, "_getexif"):  # only present in JPGs
             # Find the orientation exif tag.
             orientation_key: Optional[int] = None
             for tag, tag_value in ExifTags.TAGS.items():
@@ -63,44 +51,45 @@ def _generate_sam_jpgs(
 
             # If exif data is present, rotate image according to
             # orientation value.
-            if im.getexif() is not None:
-                exif: Dict[Any, Any] = dict(im.getexif().items())
+            if img.getexif() is not None:
+                exif: Dict[Any, Any] = dict(img.getexif().items())
                 orientation: Optional[int] = exif.get(orientation_key)
                 if orientation == 3:
-                    im = im.rotate(180)
+                    img = img.rotate(180)
                 elif orientation == 6:
-                    im = im.rotate(270)
+                    img = img.rotate(270)
                 elif orientation == 8:
-                    im = im.rotate(90)
+                    img = img.rotate(90)
 
-        if watermark:
-            im = add_watermark(im)
+        for size in sizes:
+            # thumbnail-function doesn't enlarge if img is smaller
+            cur_img = img.thumbnail((size, size))
+            if watermark and (cur_img.size[0] > SAM_WATERMARK_SIZE):
+                cur_img = add_watermark(cur_img)
 
-        try:
-            im.save(img_out, "JPEG", quality=quality)
-        except Exception as e:
-            error = f"Error encountered while saving file {img_in}: {e}"
-    return error
+            access_dirs = {
+                SAM_ACCESS_LARGE_SIZE: SAM_ACCESS_LARGE_PATH,
+                SAM_ACCESS_MEDIUM_SIZE: SAM_ACCESS_MEDIUM_PATH,
+                SAM_ACCESS_SMALL_SIZE: SAM_ACCESS_SMALL_PATH,
+            }
 
-
-def access_files_from_pdf(pdf_file: Path) -> Dict:
-    return {}
-
-
-def access_files_from_image(image: Path) -> Dict:
-    large_path = _convert_image_to_jpg(image)
-    return {
-        "oasid": image_file.name,
-        "thumbnail": "tb_url",
-        "record_image": "large_url",
-        "record_type": "image",
-        "large_image": "large_url",
-        "web_document_url": "web_url",
-    }
+            out_dir = access_dirs.get(size) or SAM_ACCESS_PATH
+            try:
+                cur_img.save(out_dir, "JPEG", quality=quality)
+                resp[size] = access_dirs.get(size)
+            except Exception as e:
+                resp[
+                    "error"
+                ] = f"Error encountered while saving file {cur_img}: {e}"
+    return resp
 
 
 def make_sam_access_files(
-    csv_in: Path, csv_out: Path, upload: bool = True, overwrite: bool = False
+    csv_in: Path,
+    csv_out: Path,
+    upload: bool = True,
+    overwrite: bool = False,
+    watermark: bool = True,
 ) -> None:
     """Generates thumbnail-images from the files in the csv-file from SAM.
 
@@ -130,7 +119,6 @@ def make_sam_access_files(
     output: List[Dict] = []
 
     for file in rows:
-        # id_ = file.get("uniqueID")
         data = json.loads(file.get("oasDataJsonEncoded"))
         legal_status = data.get("other_legal_restrictions", "4")
         constractual_status = data.get("contractual_status", "1")
@@ -147,119 +135,34 @@ def make_sam_access_files(
         if not filepath.is_file():
             raise IsADirectoryError
 
+        # Determine fileformat
         if filepath.suffix in SAM_IMAGE_FORMATS:
-            lrg_path, med_path, sml_path = _generate_sam_jpgs(filepath)
-            large_path = _generate_jpg(
-                filepath,
-                SAM_ACCESS_PATH / "large",
-                max_width=1920,
-                max_height=1920,
-            )
-        if filepath.suffix == ".pdf":
+            sizes = [
+                SAM_ACCESS_LARGE_SIZE,
+                SAM_ACCESS_MEDIUM_SIZE,
+                SAM_ACCESS_SMALL_SIZE,
+            ]
+        elif filepath.suffix == ".pdf":
+            sizes = [SAM_ACCESS_MEDIUM_SIZE, SAM_ACCESS_SMALL_SIZE]
+        else:
+            raise ImageConvertError(f"Unknown fileformat for {filepath.name}")
 
+        resp = _generate_sam_jpgs(filepath, sizes=sizes, watermark=watermark)
 
-        medium_path = _generate_jpg(
-            filepath, SAM_ACCESS_PATH / "medium", max_width=640, max_height=640
-        )
-        small_path = _generate_jpg(
-            filepath, SAM_ACCESS_PATH / "small", max_width=150, max_height=150
-        )
+        if resp.get("error"):
+            raise ImageConvertError(resp["error"])
 
         output.append(
             {
-                "oasid": image_file.name,
-                "thumbnail": "tb_url",
-                "record_image": "large_url",
-                "record_type": "image",
-                "large_image": "large_url",
+                "oasid": filepath.stem,
+                "thumbnail": resp.get(SAM_ACCESS_SMALL_SIZE),
+                "record_image": resp.get(SAM_ACCESS_MEDIUM_SIZE),
+                "record_type": "web_document"
+                if filepath.suffix == ".pdf"
+                else "image",
+                "large_image": resp.get(SAM_ACCESS_LARGE_SIZE),
                 "web_document_url": "web_url",
             }
         )
-        save_csv_to_sam(output)
 
-
-            output.append(access_files_from_pdf(filepath))
-        elif filepath.suffix in SAM_IMAGE_FORMATS:
-            output.append(access_files_from_image(filepath))
-
-
-def pdf2access(csv_in: Path, csv_out: Path) -> None:
-    """Generates thumbnail images from the input path.
-    Parameters
-    ----------
-    csv_in : Path
-        Csv-file from SAM csv-export
-    csv_out: Path
-        Csv-file to import into SAM
-    Raises
-    ------
-    PDFConvertError
-        Raised when errors in conversion occur. Errors from PIL are caught
-        and re-raised with this error. If no pdf-files are loaded, this error
-        is raised as well.
-    """
-    try:
-        files: List[Dict] = load_csv_from_sam(csv_in)
-    except Exception as e:
-        raise e
-
-    output: List[Dict] = []
-
-    for file in files:
-        id_ = file.get("uniqueID")
-        data = json.loads(file.get("oasDataJsonEncoded"))
-        legal_status = data.get("other_legal_restrictions", "4")
-        constractual_status = data.get("contractual_status", "1")
-
-        if int(legal_status.split(";")[0]) > 1:
-            continue
-        if int(constractual_status.split(";")[0]) < 3:
-            continue
-
-        try:
-            im: Any = Image.open(file)
-        except UnidentifiedImageError:
-            print(f"Failed to open {file} as an image.", flush=True)
-        except Exception as e:
-            raise PDFConvertError(e)
-        else:
-            print(f"Loading {file}", flush=True)
-            im.load()
-
-            # Cannot save alpha channel to PDF
-            if im.mode == "RGBA":
-                im = im.convert("RGB")
-
-            # JPG image might be rotated
-            if hasattr(im, "_getexif"):  # only present in JPGs
-                # Find the orientation exif tag.
-                for tag, tag_value in ExifTags.TAGS.items():
-                    if tag_value == "Orientation":
-                        orientation_key: int = tag
-                        break
-
-                # If exif data is present, rotate image according to
-                # orientation value.
-                if im.getexif() is not None:
-                    exif: Dict[Any, Any] = dict(im.getexif().items())
-                    orientation: Optional[int] = exif.get(orientation_key)
-                    if orientation == 3:
-                        im = im.rotate(180)
-                    elif orientation == 6:
-                        im = im.rotate(270)
-                    elif orientation == 8:
-                        im = im.rotate(90)
-
-            images.append(im)
-
-    try:
-        print(f"Writing images to ...", flush=True)
-        images[0].save(
-            csv_out,
-            "PDF",
-            resolution=100.0,
-            save_all=True,
-            append_images=images[1:],
-        )
-    except Exception as e:
-        raise PDFConvertError(e)
+    save_csv_to_sam(output, csv_out)
