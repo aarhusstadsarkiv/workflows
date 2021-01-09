@@ -4,7 +4,7 @@ from settings import *
 
 
 def add_watermark(img: Image) -> Image:
-    """Adds a ACA-watermark in the bottom-right corner of the passed image.
+    """Adds a ACA-watermark in the bottom-right corner of the supplied image.
 
     Parameters
     ----------

@@ -34,24 +34,22 @@ def _convert_pdf_cover_to_image(pdf_in: Path, out_folder: Path) -> Path:
         return Path(out_file)
     except Exception as e:
         raise PDFConvertError(e)
-    # return pix.pillowData(format="JPEG", optimize=True)
 
 
 def _generate_sam_jpgs(
     img_in: Path,
     quality: int = 80,
     sizes: List = [1920, 640, 150],
-    watermark: bool = True,
+    no_watermark: bool = False,
 ) -> Dict:
 
     resp = {}
     try:
-        filename = img_in.name
         img: Any = Image.open(img_in)
     except UnidentifiedImageError:
         resp["error"] = f"Failed to open {img_in} as an image."
     except Exception as e:
-        resp["error"] = f"Error encountered while opening file {img_in}: {e}"
+        resp["error"] = f"Error opening file {img_in.name}: {e}"
     else:
         img.load()
 
@@ -77,14 +75,12 @@ def _generate_sam_jpgs(
                     img = img.rotate(90)
 
         for size in sizes:
-            # thumbnail-function doesn't enlarge if img is smaller
-            # and it keeps the aspect-ratio
             copy_img = img.copy()
+            # .thumbnail() doesn't enlarge smaller img and keeps aspect-ratio
             copy_img.thumbnail((size, size))
 
-            # If larger than thumbnail, add watermark
-            if watermark and (copy_img.width > SAM_WATERMARK_WIDTH):
-                print(f"Sending image to watermark...")
+            # If larger than watermark-width, add watermark
+            if not no_watermark and (copy_img.width > SAM_WATERMARK_WIDTH):
                 copy_img = add_watermark(copy_img)
 
             # If not rbg, convert before saving as jpg
@@ -98,28 +94,25 @@ def _generate_sam_jpgs(
             }
 
             out_dir = access_dirs.get(size) or SAM_ACCESS_PATH
-            out_file = Path(out_dir, filename)
+            new_filename = img_in.stem + ".jpg"
+            out_file = Path(out_dir, new_filename)
             try:
                 copy_img.save(
                     out_file,
                     "JPEG",
                     quality=quality,
                 )
-                print(f"Image saved")
                 resp[size] = out_file
             except Exception as e:
-                print("Unable to save image")
-                resp[
-                    "error"
-                ] = f"Error encountered while saving file {copy_img}: {e}"
+                resp["error"] = f"Error saving file {copy_img.filename}: {e}"
     return resp
 
 
 def make_sam_access_files(
     csv_in: Path,
     csv_out: Path,
-    watermark: bool = True,
-    upload: bool = True,
+    no_watermark: bool = True,
+    no_upload: bool = True,
     overwrite: bool = False,
 ) -> None:
     """Generates thumbnail-images from the files in the csv-file from SAM.
@@ -130,10 +123,10 @@ def make_sam_access_files(
         Csv-file from SAM csv-export
     csv_out: Path
         Csv-file to import into SAM
-    watermark: bool
-        Add watermark to access-files. Defaults to True
-    upload: bool
-        Upload the generated access-files to Azure. Defaults to True
+    no_watermark: bool
+        Do not watermark access-files. Defaults to False
+    no_upload: bool
+        Do not upload the generated access-files to Azure. Defaults to False
     overwrite: bool
         Overwrite any previously uloaded access-files in Azure. Defaults to
         False
@@ -149,6 +142,13 @@ def make_sam_access_files(
         and re-raised with this error. If no pdf-files are loaded, this error
         is raised as well.
     """
+
+    # print(f"Value of no_watermark-argument: {no_watermark}")
+    # print(f"Value of no_upload-argument: {no_upload}")
+    # print(f"Value of overwrite-argument: {overwrite}")
+    # return
+
+    # Load SAM-csv with rows of file-references
     try:
         rows: List[Dict] = load_csv_from_sam(csv_in)
         print("Csv-file loaded...")
@@ -156,52 +156,69 @@ def make_sam_access_files(
         raise e
 
     output: List[Dict] = []
+    converted: int = 0
+    skipped: int = 0
+    failed: int = 0
 
+    # Proces and convert files
     for file in rows:
         data = json.loads(file.get("oasDataJsonEncoded"))
         legal_status = data.get("other_restrictions", "4")
         constractual_status = data.get("contractual_status", "1")
         filename = data["filename"]
 
+        # Check rights and filepath
         if int(legal_status.split(";")[0]) > 1:
             print(f"Skipping {filename} due to legal restrictions")
+            skipped += 1
             continue
         if int(constractual_status.split(";")[0]) < 3:
             print(f"Skipping {filename} due to contractual restrictions")
+            skipped += 1
             continue
 
         filepath = Path(SAM_MASTER_PATH, filename)
         if not filepath.exists():
-            raise FileNotFoundError(f"No file found: {filepath}")
+            print(f"No file found at: {filepath}")
+            failed += 1
+            continue
         if not filepath.is_file():
-            raise IsADirectoryError(
-                f"Filepath refers to a directory: {filepath}"
-            )
+            print(f"Filepath refers to a directory: {filepath}")
+            failed += 1
+            continue
 
         # Determine fileformat
         if filepath.suffix in SAM_IMAGE_FORMATS:
-            sizes = [
+            filesizes = [
                 SAM_ACCESS_LARGE_SIZE,
                 SAM_ACCESS_MEDIUM_SIZE,
                 SAM_ACCESS_SMALL_SIZE,
             ]
             record_type = "image"
         elif filepath.suffix == ".pdf":
-            sizes = [SAM_ACCESS_MEDIUM_SIZE, SAM_ACCESS_SMALL_SIZE]
+            filesizes = [SAM_ACCESS_MEDIUM_SIZE, SAM_ACCESS_SMALL_SIZE]
             filepath = _convert_pdf_cover_to_image(
                 filepath, Path("./images/temp")
             )
             record_type = "web_document"
         else:
-            raise ImageConvertError(f"Unknown fileformat for {filepath.name}")
+            print(f"Unknown fileformat for {filepath.name}")
+            skipped += 1
+            continue
 
         # Generate access-files
-        resp = _generate_sam_jpgs(filepath, sizes=sizes, watermark=watermark)
+        resp = _generate_sam_jpgs(
+            filepath, sizes=filesizes, no_watermark=no_watermark
+        )
 
         if resp.get("error"):
-            raise ImageConvertError(resp["error"])
+            print(resp["error"])
+            failed += 1
+            continue
+        else:
+            print(f"Successfully converted: {filename}")
+            converted += 1
 
-        print(f"{filename} converted")
         output.append(
             {
                 "oasid": filepath.stem,
@@ -214,3 +231,5 @@ def make_sam_access_files(
         )
 
     save_csv_to_sam(output, csv_out)
+    print("Done")
+    print(f"Converted: {converted}, failed: {failed}, skipped: {skipped}")

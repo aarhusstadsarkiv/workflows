@@ -35,7 +35,6 @@ __version__ = "0.1.0"
     show_success_modal=False,
 )
 def main() -> None:
-    """Main functionality. Uses Gooey for argparsing so we get a nice GUI!"""
 
     # General parser
     cli = GooeyParser(description="Collections of workflows to run")
@@ -62,6 +61,25 @@ def main() -> None:
         widget="FileSaver",
         type=Path,
     )
+    sam_access.add_argument(
+        "--no-watermark",
+        metavar="No watermark",
+        action="store_true",
+        help="Do not watermark access-images",
+    )
+    sam_access.add_argument(
+        "--no-upload",
+        metavar="No upload",
+        action="store_true",
+        help="Do not upload access-images to Azure",
+    )
+    sam_access.add_argument(
+        "--overwrite",
+        metavar="Overwrite",
+        action="store_true",
+        help="Overwrite previously uploaded access-imagess in Azure",
+    )
+
     # -------------------------------------------------------------------------
     # PDF2access-parser
     # -------------------------------------------------------------------------
@@ -117,10 +135,12 @@ def main() -> None:
             make_sam_access_files(
                 Path(args.sam_access_input_file),
                 Path(args.sam_access_output_file),
+                no_watermark=args.no_watermark,
+                no_upload=args.no_upload,
+                overwrite=args.overwrite,
             )
         except Exception as e:
             sys.exit(e)
-        # print("calling make_sam_access_files with args", flush=True)
 
     elif args.subcommand == "images2pdf":
         try:
