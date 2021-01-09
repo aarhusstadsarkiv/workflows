@@ -2,7 +2,7 @@ import csv
 from typing import List, Dict
 from pathlib import Path
 
-from settings import SAM_FILE_DIR_BINARY_STORAGE
+from settings import SAM_MASTER_PATH
 
 __version__ = "0.1.0"
 
@@ -21,7 +21,7 @@ class MalformedHeadersError(Exception):
 def load_csv_from_sam(input: Path) -> List[Dict]:
     # Tests
     if not input.is_file():
-        raise IsADirectoryError
+        raise IsADirectoryError("No csv-file at: " + str(input))
     if not input.suffix == ".csv":
         raise WrongFileExtensionError(
             "The input-path is not pointing to a csv-file"
@@ -31,17 +31,13 @@ def load_csv_from_sam(input: Path) -> List[Dict]:
             reader = csv.DictReader(ifile)
         except Exception as e:
             raise e
-    if reader.fieldnames != ["jobLabel", "uniqueID", "oasDataJsonEncoded"]:
-        raise MalformedHeadersError(
-            "Csv-file does not contain the right headers"
-        )
 
-    # Add full path the the masterfiles and return loaded csv-file
-    output = []
-    for d in reader:
-        d["path"] = Path(SAM_FILE_DIR_BINARY_STORAGE, d.get("uniqueID"))
-        output.append(d)
-    return output
+        if reader.fieldnames != ["jobLabel", "uniqueID", "oasDataJsonEncoded"]:
+            raise MalformedHeadersError(
+                "Csv-file does not contain the right headers"
+            )
+
+        return [d for d in reader]
 
 
 def save_csv_to_sam(files: List[Dict], path: Path) -> None:
@@ -55,6 +51,6 @@ def save_csv_to_sam(files: List[Dict], path: Path) -> None:
     ]
 
     with open(path, "w") as ofile:
-        writer = csv.DictWriter(ofile)
-        writer.writeheader(sam_output_headers)
+        writer = csv.DictWriter(ofile, fieldnames=sam_output_headers)
+        writer.writeheader()
         writer.writerows(files)

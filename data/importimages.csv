@@ -1,0 +1,8 @@
+oasid,thumbnail,record_image,record_type,large_image,web_document_url
+1,/Users/cjk/github/sam-workflows/data/access_files/small/1.png,/Users/cjk/github/sam-workflows/data/access_files/medium/1.png,web_document,,web_url
+2,/Users/cjk/github/sam-workflows/data/access_files/small/2.jpg,/Users/cjk/github/sam-workflows/data/access_files/medium/2.jpg,image,/Users/cjk/github/sam-workflows/data/access_files/large/2.jpg,web_url
+3,/Users/cjk/github/sam-workflows/data/access_files/small/3.jpg,/Users/cjk/github/sam-workflows/data/access_files/medium/3.jpg,image,/Users/cjk/github/sam-workflows/data/access_files/large/3.jpg,web_url
+4,/Users/cjk/github/sam-workflows/data/access_files/small/4.jpg,/Users/cjk/github/sam-workflows/data/access_files/medium/4.jpg,image,/Users/cjk/github/sam-workflows/data/access_files/large/4.jpg,web_url
+5,/Users/cjk/github/sam-workflows/data/access_files/small/5.png,/Users/cjk/github/sam-workflows/data/access_files/medium/5.png,image,/Users/cjk/github/sam-workflows/data/access_files/large/5.png,web_url
+6,/Users/cjk/github/sam-workflows/data/access_files/small/6.png,/Users/cjk/github/sam-workflows/data/access_files/medium/6.png,image,/Users/cjk/github/sam-workflows/data/access_files/large/6.png,web_url
+7,/Users/cjk/github/sam-workflows/data/access_files/small/7.png,/Users/cjk/github/sam-workflows/data/access_files/medium/7.png,image,/Users/cjk/github/sam-workflows/data/access_files/large/7.png,web_url

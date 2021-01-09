@@ -1,54 +1,37 @@
 from PIL import Image
 
+from settings import *
 
-def add_watermark(fp, tp):
-    im = Image.open(fp)
-    # bw = im.convert("L")
 
-    # iconXSize = 160
-    # iconYSize = 51
+def add_watermark(img: Image) -> Image:
+    """Adds a ACA-watermark in the bottom-right corner of the passed image.
 
-    width, height = im.size
-    if width > 640:
-        rotate = False
-    elif width >= iconXSize:
-        rotate = False
-    elif width >= iconYSize:
-        if height >= iconXSize:
-            temp = iconXSize
+    Parameters
+    ----------
+    img : Image
+        PIL Image-object
 
-            iconXSize = iconYSize
-            iconYSize = temp
-            rotate = True
-        else:
-            self.logMessage("too small to add a watermark", STATUS_MSG)
-            return
+    Returns
+    ------
+    Image
+    """
+    copy = img.copy()
+    grayscale = copy.convert("L")
+
+    anchor_x = copy.width - SAM_WATERMARK_WIDTH
+    anchor_y = copy.height - SAM_WATERMARK_HEIGHT
+    pixel_count = SAM_WATERMARK_WIDTH * SAM_WATERMARK_HEIGHT
+    pixel_values = 0
+
+    for x in range(anchor_x, anchor_x + SAM_WATERMARK_WIDTH):
+        for y in range(anchor_y, anchor_y + SAM_WATERMARK_HEIGHT):
+            pixel_values = pixel_values + grayscale.getpixel((x, y))
+
+    if pixel_values / pixel_count < 128:
+        logo = Image.open(SAM_WATERMARK_WHITE)
     else:
-        self.logMessage("too small to add a watermark", STATUS_MSG)
-        return
+        logo = Image.open(SAM_WATERMARK_BLACK)
 
-    anchorX = width - iconXSize
-    anchorY = height - iconYSize
+    copy.paste(logo, (anchor_x, anchor_y), logo)
 
-    nrOfPixels = iconXSize * iconYSize
-    sumPixel = 0
-    for x in xrange(anchorX, anchorX + iconXSize):
-        for y in xrange(anchorY, anchorY + iconYSize):
-            sumPixel = sumPixel + bw.getpixel((x, y))
-
-    averagePixel = sumPixel / nrOfPixels
-
-    if averagePixel < 128:
-        # its more blackish
-        waterIcon = Image.open(self.icon_white)
-    else:
-        # its more whitish
-        waterIcon = Image.open(self.icon_black)
-
-    waterIcon = waterIcon.convert("RGBA")
-
-    if rotate:
-        waterIcon = waterIcon.rotate(90, expand=True)
-
-    im.paste(waterIcon, (anchorX, anchorY), waterIcon)
-    im.save(tp)
+    return copy

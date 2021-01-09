@@ -6,7 +6,7 @@ from pathlib import Path
 
 from gooey import Gooey, GooeyParser
 
-from subcommands import pdf2access, images2pdf
+from subcommands import make_sam_access_files, images2pdf
 
 
 # -----------------------------------------------------------------------------
@@ -41,6 +41,27 @@ def main() -> None:
     cli = GooeyParser(description="Collections of workflows to run")
     subs = cli.add_subparsers(dest="subcommand")
 
+    # -------------------------------------------------------------------------
+    # PDF2access-parser
+    # -------------------------------------------------------------------------
+    sam_access = subs.add_parser(
+        "sam_access", help="Generate access-files from master-files"
+    )
+    # Arguments
+    sam_access.add_argument(
+        "sam_access_input_file",
+        metavar="Input",
+        help="Path to csv-file exported from SAM",
+        widget="FileChooser",
+        type=Path,
+    )
+    sam_access.add_argument(
+        "sam_access_output_file",
+        metavar="Output",
+        help="Path to csv-file to re-import into SAM",
+        widget="FileSaver",
+        type=Path,
+    )
     # -------------------------------------------------------------------------
     # PDF2access-parser
     # -------------------------------------------------------------------------
@@ -90,6 +111,16 @@ def main() -> None:
 
     if args.subcommand == "pdf2access":
         print(args.pdf2access_input_file, flush=True)
+
+    elif args.subcommand == "sam_access":
+        try:
+            make_sam_access_files(
+                Path(args.sam_access_input_file),
+                Path(args.sam_access_output_file),
+            )
+        except Exception as e:
+            sys.exit(e)
+        # print("calling make_sam_access_files with args", flush=True)
 
     elif args.subcommand == "images2pdf":
         try:
