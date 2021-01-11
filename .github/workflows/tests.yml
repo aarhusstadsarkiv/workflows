@@ -33,6 +33,9 @@ jobs:
       - name: Run flake8, black, and mypy
         run: |
           source $VENV
+          flake8
+          black --check .
+          mypy .
 
   # test:
   #   name: Run tests & get coverage
