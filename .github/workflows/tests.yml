@@ -23,8 +23,6 @@ jobs:
         with:
           path: .venv
           key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-venv-
       - name: Install dependencies
         run: |
           poetry config virtualenvs.create true
@@ -57,8 +55,6 @@ jobs:
         with:
           path: .venv
           key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-venv-
       - name: Install dependencies
         run: |
           poetry config virtualenvs.create true
