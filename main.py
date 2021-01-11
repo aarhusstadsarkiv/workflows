@@ -6,7 +6,7 @@ from pathlib import Path
 
 from gooey import Gooey, GooeyParser
 
-from subcommands import make_sam_access_files, images2pdf
+from subcommands import make_sam_access_files  # , images2pdf
 
 
 # -----------------------------------------------------------------------------
@@ -19,10 +19,8 @@ if sys.stdout.encoding != "UTF-8":
 if sys.stderr.encoding != "UTF-8":
     sys.stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
 
-# nonbuffered_stdout = os.fdopen(sys.stdout.fileno(), "w", 0)
-# sys.stdout = nonbuffered_stdout
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 @Gooey(
@@ -41,7 +39,7 @@ def main() -> None:
     subs = cli.add_subparsers(dest="subcommand")
 
     # -------------------------------------------------------------------------
-    # PDF2access-parser
+    # SAMaccess-parser
     # -------------------------------------------------------------------------
     sam_access = subs.add_parser(
         "sam_access", help="Generate access-files from master-files"
@@ -81,56 +79,30 @@ def main() -> None:
     )
 
     # -------------------------------------------------------------------------
-    # PDF2access-parser
-    # -------------------------------------------------------------------------
-    pdf2access = subs.add_parser(
-        "pdf2access", help="Generate thumbnails from pdf-files"
-    )
-    # Arguments
-    pdf2access.add_argument(
-        "pdf2access_input_file",
-        metavar="input file",
-        help="csv-file with metadata about the pdf-files",
-        widget="FileChooser",
-        type=Path,
-    )
-    pdf2access.add_argument(
-        "pdf2access_output_file",
-        metavar="output file",
-        help="Path to csv-file with output-data",
-        widget="FileSaver",
-        type=Path,
-    )
-
-    # -------------------------------------------------------------------------
     # Images2pdf-parser
     # -------------------------------------------------------------------------
-    images2pdf = subs.add_parser(
-        "images2pdf",
-        help="Generate a single pdf-file from a directory with image-files",
-    )
-    # Arguments
-    images2pdf.add_argument(
-        "images2pdf_input_folder",
-        metavar="Imagefolder",
-        help="Path to folder containing images to combine to a pdf-file",
-        widget="DirChooser",
-        type=Path,
-    )
-    images2pdf.add_argument(
-        "images2pdf_output_file",
-        metavar="Output pdf-file",
-        help="Path to resulting pdf-file",
-        widget="FileSaver",
-        type=Path,
-    )
+    # images2pdf = subs.add_parser(
+    #     "images2pdf",
+    #     help="Generate a single pdf-file from a directory with image-files",
+    # )
+    # images2pdf.add_argument(
+    #     "images2pdf_input_folder",
+    #     metavar="Imagefolder",
+    #     help="Path to folder containing images to combine to a pdf-file",
+    #     widget="DirChooser",
+    #     type=Path,
+    # )
+    # images2pdf.add_argument(
+    #     "images2pdf_output_file",
+    #     metavar="Output pdf-file",
+    #     help="Path to resulting pdf-file",
+    #     widget="FileSaver",
+    #     type=Path,
+    # )
 
     args = cli.parse_args()
 
-    if args.subcommand == "pdf2access":
-        print(args.pdf2access_input_file, flush=True)
-
-    elif args.subcommand == "sam_access":
+    if args.subcommand == "sam_access":
         try:
             make_sam_access_files(
                 Path(args.sam_access_input_file),
@@ -142,14 +114,14 @@ def main() -> None:
         except Exception as e:
             sys.exit(e)
 
-    elif args.subcommand == "images2pdf":
-        try:
-            images2pdf(
-                Path(args.images2pdf_input_folder),
-                Path(args.images2pdf_output_file),
-            )
-        except Exception as e:
-            sys.exit(e)
+    # elif args.subcommand == "images2pdf":
+    #     try:
+    #         images2pdf(
+    #             Path(args.images2pdf_input_folder),
+    #             Path(args.images2pdf_output_file),
+    #         )
+    #     except Exception as e:
+    #         sys.exit(e)
 
     else:
         print("No subcommand chosen", flush=True)
