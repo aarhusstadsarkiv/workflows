@@ -5,7 +5,10 @@ on: [push]
 jobs:
   check:
     name: Check linting & types
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Checkout 
         uses: actions/checkout@v1
@@ -36,7 +39,10 @@ jobs:
 
   test:
     name: Run tests & get coverage
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Checkout 
         uses: actions/checkout@v1
