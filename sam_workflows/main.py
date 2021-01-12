@@ -1,12 +1,11 @@
 import codecs
 
-# import os
 import sys
 from pathlib import Path
 
 from gooey import Gooey, GooeyParser
 
-from subcommands import make_sam_access_files  # , images2pdf
+from .subcommands import make_sam_access_files  # , images2pdf
 
 
 # -----------------------------------------------------------------------------

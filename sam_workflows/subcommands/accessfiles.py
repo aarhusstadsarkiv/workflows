@@ -1,12 +1,23 @@
 import json
 from pathlib import Path
-from typing import List, Any, Dict, Optional, Tuple
+from typing import List, Any, Dict, Optional
 
 import fitz
 from PIL import Image, UnidentifiedImageError, ExifTags
 
-from helpers import load_csv_from_sam, save_csv_to_sam, add_watermark
-from settings import *
+from ..helpers import load_csv_from_sam, save_csv_to_sam, add_watermark
+from ..settings import (
+    SAM_WATERMARK_WIDTH,
+    SAM_ACCESS_LARGE_SIZE,
+    SAM_ACCESS_LARGE_PATH,
+    SAM_ACCESS_MEDIUM_SIZE,
+    SAM_ACCESS_MEDIUM_PATH,
+    SAM_ACCESS_SMALL_SIZE,
+    SAM_ACCESS_SMALL_PATH,
+    SAM_ACCESS_PATH,
+    SAM_MASTER_PATH,
+    SAM_IMAGE_FORMATS,
+)
 
 # -----------------------------------------------------------------------------
 # Classes
@@ -231,5 +242,6 @@ def make_sam_access_files(
         )
 
     save_csv_to_sam(output, csv_out)
+
     print("Done")
     print(f"Converted: {converted}, failed: {failed}, skipped: {skipped}")
