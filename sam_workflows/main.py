@@ -12,14 +12,15 @@ from .subcommands import make_sam_access_files  # , images2pdf
 # Setup
 # -----------------------------------------------------------------------------
 
-utf8_codec = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
+utf8_stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
+utf8_stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
 if sys.stdout.encoding != "UTF-8":
-    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
+    sys.stdout = utf8_stdout  # type: ignore
 if sys.stderr.encoding != "UTF-8":
-    sys.stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
+    sys.stderr = utf8_stderr  # type: ignore
 
 
-__version__ = "0.1.1"
+__version__ = "0.1.0"
 
 
 @Gooey(
