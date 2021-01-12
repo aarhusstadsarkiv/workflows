@@ -2,7 +2,6 @@ import csv
 from typing import List, Dict
 from pathlib import Path
 
-from settings import SAM_MASTER_PATH
 
 __version__ = "0.1.0"
 

@@ -1,6 +1,11 @@
 from PIL import Image
 
-from settings import *
+from ..settings import (
+    SAM_WATERMARK_WIDTH,
+    SAM_WATERMARK_HEIGHT,
+    SAM_WATERMARK_WHITE,
+    SAM_WATERMARK_BLACK,
+)
 
 
 def add_watermark(img: Image) -> Image:
