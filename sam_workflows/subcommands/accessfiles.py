@@ -162,7 +162,7 @@ def make_sam_access_files(
     # Load SAM-csv with rows of file-references
     try:
         rows: List[Dict] = load_csv_from_sam(csv_in)
-        print("Csv-file loaded...")
+        print("Csv-file loaded...", flush=True)
     except Exception as e:
         raise e
 
@@ -180,21 +180,24 @@ def make_sam_access_files(
 
         # Check rights and filepath
         if int(legal_status.split(";")[0]) > 1:
-            print(f"Skipping {filename} due to legal restrictions")
+            print(f"Skipping {filename} due to legal restrictions", flush=True)
             skipped += 1
             continue
         if int(constractual_status.split(";")[0]) < 3:
-            print(f"Skipping {filename} due to contractual restrictions")
+            print(
+                f"Skipping {filename} due to contractual restrictions",
+                flush=True,
+            )
             skipped += 1
             continue
 
         filepath = Path(SAM_MASTER_PATH, filename)
         if not filepath.exists():
-            print(f"No file found at: {filepath}")
+            print(f"No file found at: {filepath}", flush=True)
             failed += 1
             continue
         if not filepath.is_file():
-            print(f"Filepath refers to a directory: {filepath}")
+            print(f"Filepath refers to a directory: {filepath}", flush=True)
             failed += 1
             continue
 
@@ -213,7 +216,7 @@ def make_sam_access_files(
             )
             record_type = "web_document"
         else:
-            print(f"Unknown fileformat for {filepath.name}")
+            print(f"Unknown fileformat for {filepath.name}", flush=True)
             skipped += 1
             continue
 
@@ -223,11 +226,11 @@ def make_sam_access_files(
         )
 
         if resp.get("error"):
-            print(resp["error"])
+            print(resp["error"], flush=True)
             failed += 1
             continue
         else:
-            print(f"Successfully converted: {filename}")
+            print(f"Successfully converted: {filename}", flush=True)
             converted += 1
 
         output.append(
@@ -243,5 +246,8 @@ def make_sam_access_files(
 
     save_csv_to_sam(output, csv_out)
 
-    print("Done")
-    print(f"Converted: {converted}, failed: {failed}, skipped: {skipped}")
+    print("Done", flush=True)
+    print(
+        f"Converted: {converted}, failed: {failed}, skipped: {skipped}",
+        flush=True,
+    )
