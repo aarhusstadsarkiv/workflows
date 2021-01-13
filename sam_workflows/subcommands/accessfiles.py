@@ -113,7 +113,7 @@ def _generate_sam_jpgs(
                     "JPEG",
                     quality=quality,
                 )
-                resp[size] = out_file
+                resp[size] = str(out_file)
             except Exception as e:
                 resp["error"] = f"Error saving file {copy_img.filename}: {e}"
     return resp
@@ -173,7 +173,7 @@ def make_sam_access_files(
 
     # Proces and convert files
     for file in rows:
-        data = json.loads(file.get("oasDataJsonEncoded"))
+        data = json.loads(file["oasDataJsonEncoded"])
         legal_status = data.get("other_restrictions", "4")
         constractual_status = data.get("contractual_status", "1")
         filename = data["filename"]
