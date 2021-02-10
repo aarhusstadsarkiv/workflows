@@ -1,18 +1,16 @@
 from pathlib import Path
 
-SAM_MASTER_PATH = Path("/Users/cjk/github/sam-workflows/data/export_files")
+SAM_MASTER_PATH = Path(
+    "/Users/cjk/github/sam-workflows/sam_workflows/data/export_files"
+)
 
-SAM_ACCESS_PATH = Path("/Users/cjk/github/sam-workflows/data/access_files")
+SAM_ACCESS_PATH = Path(
+    "/Users/cjk/github/sam-workflows/sam_workflows/data/access_files"
+)
 
-SAM_ACCESS_LARGE_PATH = Path(
-    "/Users/cjk/github/sam-workflows/data/access_files/large"
-)
-SAM_ACCESS_MEDIUM_PATH = Path(
-    "/Users/cjk/github/sam-workflows/data/access_files/medium"
-)
-SAM_ACCESS_SMALL_PATH = Path(
-    "/Users/cjk/github/sam-workflows/data/access_files/small"
-)
+SAM_ACCESS_LARGE_PATH = SAM_ACCESS_PATH / "large"
+SAM_ACCESS_MEDIUM_PATH = SAM_ACCESS_PATH / "medium"
+SAM_ACCESS_SMALL_PATH = SAM_ACCESS_PATH / "small"
 
 # SAM_MASTER_PATH = Path("M:\\Borgerservice-Biblioteker\\Stadsarkivet" \
 # "\\_DIGITALT ARKIV\\ark_binary_store")

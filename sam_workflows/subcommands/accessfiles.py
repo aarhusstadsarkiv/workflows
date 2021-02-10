@@ -5,7 +5,12 @@ from typing import List, Any, Dict, Optional
 import fitz
 from PIL import Image, UnidentifiedImageError, ExifTags
 
-from ..helpers import load_csv_from_sam, save_csv_to_sam, add_watermark
+from ..helpers import (
+    load_csv_from_sam,
+    save_csv_to_sam,
+    add_watermark,
+    upload_files,
+)
 from ..settings import (
     SAM_WATERMARK_WIDTH,
     SAM_ACCESS_LARGE_SIZE,
@@ -47,11 +52,12 @@ def _convert_pdf_cover_to_image(pdf_in: Path, out_folder: Path) -> Path:
         raise PDFConvertError(e)
 
 
-def _generate_sam_jpgs(
+def _generate_jpgs(
     img_in: Path,
     quality: int = 80,
     sizes: List = [1920, 640, 150],
-    no_watermark: bool = False,
+    watermark: bool = False,
+    overwrite: bool = False,
 ) -> Dict:
 
     resp = {}
@@ -91,7 +97,7 @@ def _generate_sam_jpgs(
             copy_img.thumbnail((size, size))
 
             # If larger than watermark-width, add watermark
-            if not no_watermark and (copy_img.width > SAM_WATERMARK_WIDTH):
+            if watermark and (copy_img.width > SAM_WATERMARK_WIDTH):
                 copy_img = add_watermark(copy_img)
 
             # If not rbg, convert before saving as jpg
@@ -107,6 +113,12 @@ def _generate_sam_jpgs(
             out_dir = access_dirs.get(size) or SAM_ACCESS_PATH
             new_filename = img_in.stem + ".jpg"
             out_file = Path(out_dir, new_filename)
+
+            # Skip saving, if overwrite is False and file already exists
+            if (not overwrite) and out_file.exists():
+                resp["error"] = f"File already exists: {out_file}"
+                continue
+            # Save file to local directory
             try:
                 copy_img.save(
                     out_file,
@@ -119,14 +131,15 @@ def _generate_sam_jpgs(
     return resp
 
 
-def make_sam_access_files(
+async def generate_sam_access_files(
     csv_in: Path,
     csv_out: Path,
-    no_watermark: bool = True,
-    no_upload: bool = True,
+    watermark: bool = False,
+    upload: bool = False,
     overwrite: bool = False,
 ) -> None:
-    """Generates thumbnail-images from the files in the csv-file from SAM.
+    """Generates, uploads and copies access-images from the files in the
+    csv-file.
 
     Parameters
     ----------
@@ -134,12 +147,12 @@ def make_sam_access_files(
         Csv-file from SAM csv-export
     csv_out: Path
         Csv-file to import into SAM
-    no_watermark: bool
-        Do not watermark access-files. Defaults to False
-    no_upload: bool
-        Do not upload the generated access-files to Azure. Defaults to False
+    watermark: bool
+        Watermark access-files. Defaults to False
+    upload: bool
+        Upload the generated access-files to Azure. Defaults to False
     overwrite: bool
-        Overwrite any previously uloaded access-files in Azure. Defaults to
+        Overwrite existing files in both local storage and Azure. Defaults to
         False
 
     Raises
@@ -154,14 +167,9 @@ def make_sam_access_files(
         is raised as well.
     """
 
-    # print(f"Value of no_watermark-argument: {no_watermark}")
-    # print(f"Value of no_upload-argument: {no_upload}")
-    # print(f"Value of overwrite-argument: {overwrite}")
-    # return
-
     # Load SAM-csv with rows of file-references
     try:
-        rows: List[Dict] = load_csv_from_sam(csv_in)
+        files: List[Dict] = load_csv_from_sam(csv_in)
         print("Csv-file loaded...", flush=True)
     except Exception as e:
         raise e
@@ -170,15 +178,17 @@ def make_sam_access_files(
     converted: int = 0
     skipped: int = 0
     failed: int = 0
+    uploaded: int = 0
 
-    # Proces and convert files
-    for file in rows:
+    # Generate access-files
+    for file in files:
+        # Load SAM-data
         data = json.loads(file["oasDataJsonEncoded"])
-        legal_status = data.get("other_restrictions", "4")
-        constractual_status = data.get("contractual_status", "1")
-        filename = data["filename"]
+        legal_status: str = data.get("other_restrictions", "4")
+        constractual_status: str = data.get("contractual_status", "1")
+        filename: str = data["filename"]
 
-        # Check rights and filepath
+        # Check rights
         if int(legal_status.split(";")[0]) > 1:
             print(f"Skipping {filename} due to legal restrictions", flush=True)
             skipped += 1
@@ -191,6 +201,7 @@ def make_sam_access_files(
             skipped += 1
             continue
 
+        # Check filepath
         filepath = Path(SAM_MASTER_PATH, filename)
         if not filepath.exists():
             print(f"No file found at: {filepath}", flush=True)
@@ -221,33 +232,62 @@ def make_sam_access_files(
             continue
 
         # Generate access-files
-        resp = _generate_sam_jpgs(
-            filepath, sizes=filesizes, no_watermark=no_watermark
+        convert_resp = _generate_jpgs(
+            filepath, sizes=filesizes, watermark=watermark
         )
 
-        if resp.get("error"):
-            print(resp["error"], flush=True)
+        # Check response from convert-function
+        if convert_resp.get("error"):
+            print(convert_resp["error"], flush=True)
             failed += 1
             continue
-        else:
-            print(f"Successfully converted: {filename}", flush=True)
-            converted += 1
+
+        print(f"Successfully converted {filename}", flush=True)
+        converted += 1
+
+        small = convert_resp.get(SAM_ACCESS_SMALL_SIZE)
+        medium = convert_resp.get(SAM_ACCESS_MEDIUM_SIZE)
+        large = convert_resp.get(SAM_ACCESS_LARGE_SIZE)
+
+        # Upload access-files
+        if upload:
+            filepaths = [Path(small), Path(medium)]
+            if large:
+                filepaths.append(Path(large))
+            try:
+                urls = await upload_files(filepaths, overwrite=overwrite)
+                small = urls[0]
+                medium = urls[1]
+                large = urls[2]
+                print(
+                    f"Successfully uploaded accessfiles for {filename}",
+                    flush=True,
+                )
+                uploaded += 1
+            except Exception as e:
+                print(
+                    f"Failed to upload accessfiles for {filename}. Error: {e}",
+                    flush=True,
+                )
+                failed += 1
+                continue
 
         output.append(
             {
                 "oasid": filepath.stem,
-                "thumbnail": resp.get(SAM_ACCESS_SMALL_SIZE),
-                "record_image": resp.get(SAM_ACCESS_MEDIUM_SIZE),
+                "thumbnail": small,
+                "record_image": medium,
                 "record_type": record_type,
-                "large_image": resp.get(SAM_ACCESS_LARGE_SIZE),
+                "large_image": large or "",
                 "web_document_url": "web_url",
             }
         )
-
-    save_csv_to_sam(output, csv_out)
+    if output:
+        save_csv_to_sam(output, csv_out)
 
     print("Done", flush=True)
     print(
-        f"Converted: {converted}, failed: {failed}, skipped: {skipped}",
+        f"Converted: {converted}, uploaded: {uploaded}, failed: {failed}, \
+        skipped: {skipped}",
         flush=True,
     )
