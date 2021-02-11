@@ -1,31 +1,14 @@
 from pathlib import Path
 
+ACASTORAGE_CONTAINER = "https://acastorage.blob.core.windows.net/test"
+
 SAM_MASTER_PATH = Path(
-    "/Users/cjk/github/sam-workflows/sam_workflows/data/export_files"
+    "/Users/cjk/github/sam-workflows/sam_workflows/data/files_from_sam"
 )
 
 SAM_ACCESS_PATH = Path(
-    "/Users/cjk/github/sam-workflows/sam_workflows/data/access_files"
+    "/Users/cjk/github/sam-workflows/sam_workflows/data/files_to_upload"
 )
-
-SAM_ACCESS_LARGE_PATH = SAM_ACCESS_PATH / "large"
-SAM_ACCESS_MEDIUM_PATH = SAM_ACCESS_PATH / "medium"
-SAM_ACCESS_SMALL_PATH = SAM_ACCESS_PATH / "small"
-
-# SAM_MASTER_PATH = Path("M:\\Borgerservice-Biblioteker\\Stadsarkivet" \
-# "\\_DIGITALT ARKIV\\ark_binary_store")
-
-# SAM_ACCESS_PATH = Path("M:\\Borgerservice-Biblioteker\\Stadsarkivet" \
-# "\\_DIGITALT ARKIV\\ark_binary_access")
-
-# SAM_ACCESS_LARGE_PATH = Path("M:\\Borgerservice-Biblioteker\\Stadsarkivet" \
-# "\\_DIGITALT ARKIV\\ark_binary_access\large")
-
-# SAM_ACCESS_MEDIUM_PATH = Path("M:\\Borgerservice-Biblioteker\\Stadsarkivet" \
-# "\\_DIGITALT ARKIV\\ark_binary_access\medium")
-
-# SAM_ACCESS_SMALL_PATH = Path("M:\\Borgerservice-Biblioteker\\Stadsarkivet" \
-# "\\_DIGITALT ARKIV\\ark_binary_access\small")
 
 SAM_ACCESS_LARGE_SIZE = 1920
 SAM_ACCESS_MEDIUM_SIZE = 640

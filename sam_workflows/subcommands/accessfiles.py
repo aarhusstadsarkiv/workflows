@@ -14,14 +14,12 @@ from ..helpers import (
 from ..settings import (
     SAM_WATERMARK_WIDTH,
     SAM_ACCESS_LARGE_SIZE,
-    SAM_ACCESS_LARGE_PATH,
     SAM_ACCESS_MEDIUM_SIZE,
-    SAM_ACCESS_MEDIUM_PATH,
     SAM_ACCESS_SMALL_SIZE,
-    SAM_ACCESS_SMALL_PATH,
     SAM_ACCESS_PATH,
     SAM_MASTER_PATH,
     SAM_IMAGE_FORMATS,
+    ACASTORAGE_CONTAINER,
 )
 
 # -----------------------------------------------------------------------------
@@ -104,30 +102,24 @@ def _generate_jpgs(
             if copy_img.mode != "RGB":
                 copy_img = copy_img.convert("RGB")
 
-            access_dirs = {
-                SAM_ACCESS_LARGE_SIZE: SAM_ACCESS_LARGE_PATH,
-                SAM_ACCESS_MEDIUM_SIZE: SAM_ACCESS_MEDIUM_PATH,
-                SAM_ACCESS_SMALL_SIZE: SAM_ACCESS_SMALL_PATH,
-            }
+            size_extensions = {1920: "_l", 640: "_m", 150: "_s"}
 
-            out_dir = access_dirs.get(size) or SAM_ACCESS_PATH
-            new_filename = img_in.stem + ".jpg"
-            out_file = Path(out_dir, new_filename)
+            new_filename = img_in.stem + size_extensions.get(size) + ".jpg"
+            out_file = Path(SAM_ACCESS_PATH, new_filename)
 
             # Skip saving, if overwrite is False and file already exists
             if (not overwrite) and out_file.exists():
                 resp["error"] = f"File already exists: {out_file}"
-                continue
-            # Save file to local directory
-            try:
-                copy_img.save(
-                    out_file,
-                    "JPEG",
-                    quality=quality,
-                )
-                resp[size] = str(out_file)
-            except Exception as e:
-                resp["error"] = f"Error saving file {copy_img.filename}: {e}"
+            else:
+                try:
+                    copy_img.save(
+                        out_file,
+                        "JPEG",
+                        quality=quality,
+                    )
+                    resp[size] = out_file
+                except Exception as e:
+                    resp["error"] = f"Error saving file {img_in.name}: {e}"
     return resp
 
 
@@ -170,15 +162,11 @@ async def generate_sam_access_files(
     # Load SAM-csv with rows of file-references
     try:
         files: List[Dict] = load_csv_from_sam(csv_in)
-        print("Csv-file loaded...", flush=True)
+        print("Csv-file loaded", flush=True)
     except Exception as e:
         raise e
 
     output: List[Dict] = []
-    converted: int = 0
-    skipped: int = 0
-    failed: int = 0
-    uploaded: int = 0
 
     # Generate access-files
     for file in files:
@@ -191,25 +179,21 @@ async def generate_sam_access_files(
         # Check rights
         if int(legal_status.split(";")[0]) > 1:
             print(f"Skipping {filename} due to legal restrictions", flush=True)
-            skipped += 1
             continue
         if int(constractual_status.split(";")[0]) < 3:
             print(
                 f"Skipping {filename} due to contractual restrictions",
                 flush=True,
             )
-            skipped += 1
             continue
 
         # Check filepath
         filepath = Path(SAM_MASTER_PATH, filename)
         if not filepath.exists():
             print(f"No file found at: {filepath}", flush=True)
-            failed += 1
             continue
         if not filepath.is_file():
             print(f"Filepath refers to a directory: {filepath}", flush=True)
-            failed += 1
             continue
 
         # Determine fileformat
@@ -228,7 +212,6 @@ async def generate_sam_access_files(
             record_type = "web_document"
         else:
             print(f"Unknown fileformat for {filepath.name}", flush=True)
-            skipped += 1
             continue
 
         # Generate access-files
@@ -239,55 +222,47 @@ async def generate_sam_access_files(
         # Check response from convert-function
         if convert_resp.get("error"):
             print(convert_resp["error"], flush=True)
-            failed += 1
             continue
 
         print(f"Successfully converted {filename}", flush=True)
-        converted += 1
 
-        small = convert_resp.get(SAM_ACCESS_SMALL_SIZE)
-        medium = convert_resp.get(SAM_ACCESS_MEDIUM_SIZE)
-        large = convert_resp.get(SAM_ACCESS_LARGE_SIZE)
+        small_path = convert_resp.get(SAM_ACCESS_SMALL_SIZE)
+        medium_path = convert_resp.get(SAM_ACCESS_MEDIUM_SIZE)
+        large_path = convert_resp.get(SAM_ACCESS_LARGE_SIZE)
 
         # Upload access-files
         if upload:
-            filepaths = [Path(small), Path(medium)]
-            if large:
-                filepaths.append(Path(large))
-            try:
-                urls = await upload_files(filepaths, overwrite=overwrite)
-                small = urls[0]
-                medium = urls[1]
-                large = urls[2]
-                print(
-                    f"Successfully uploaded accessfiles for {filename}",
-                    flush=True,
-                )
-                uploaded += 1
-            except Exception as e:
-                print(
-                    f"Failed to upload accessfiles for {filename}. Error: {e}",
-                    flush=True,
-                )
-                failed += 1
+            filepaths = [small_path, medium_path]
+            if large_path:
+                filepaths.append(large_path)
+
+            errors = await upload_files(filepaths, overwrite=overwrite)
+            if errors:
+                print(f"Failed upload for {filename}:", flush=True)
+                print(f"Error: {errors[0]}", flush=True)
                 continue
 
-        output.append(
-            {
-                "oasid": filepath.stem,
-                "thumbnail": small,
-                "record_image": medium,
-                "record_type": record_type,
-                "large_image": large or "",
-                "web_document_url": "web_url",
-            }
-        )
+            print(f"Uploaded files for {filename}", flush=True)
+
+            output.append(
+                {
+                    "oasid": filepath.stem,
+                    "thumbnail": "/".join(
+                        [ACASTORAGE_CONTAINER, small_path.name]
+                    ),
+                    "record_image": "/".join(
+                        [ACASTORAGE_CONTAINER, medium_path.name]
+                    ),
+                    "record_type": record_type,
+                    "large_image": "/".join(
+                        [ACASTORAGE_CONTAINER, large_path.name]
+                    )
+                    if large_path
+                    else "",
+                    "web_document_url": "web_url",
+                }
+            )
     if output:
         save_csv_to_sam(output, csv_out)
 
     print("Done", flush=True)
-    print(
-        f"Converted: {converted}, uploaded: {uploaded}, failed: {failed}, \
-        skipped: {skipped}",
-        flush=True,
-    )
