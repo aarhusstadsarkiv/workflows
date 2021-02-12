@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List, Any, Dict, Optional
+from typing import List, Any, Dict, Optional, Tuple
 
 import fitz
 from PIL import Image, UnidentifiedImageError, ExifTags
@@ -56,15 +56,16 @@ def _generate_jpgs(
     sizes: List = [1920, 640, 150],
     watermark: bool = False,
     overwrite: bool = False,
-) -> Dict:
+) -> Tuple[Dict[int, Path], Optional[str]]:
 
-    resp = {}
+    resp: Dict[int, Path] = {}
+    error: Optional[str] = None
     try:
         img: Any = Image.open(img_in)
     except UnidentifiedImageError:
-        resp["error"] = f"Failed to open {img_in} as an image."
+        error = f"Failed to open {img_in} as an image."
     except Exception as e:
-        resp["error"] = f"Error opening file {img_in.name}: {e}"
+        error = f"Error opening file {img_in.name}: {e}"
     else:
         img.load()
 
@@ -104,12 +105,12 @@ def _generate_jpgs(
 
             size_extensions = {1920: "_l", 640: "_m", 150: "_s"}
 
-            new_filename = img_in.stem + size_extensions.get(size) + ".jpg"
+            new_filename = img_in.stem + size_extensions[size] + ".jpg"
             out_file = Path(SAM_ACCESS_PATH, new_filename)
 
             # Skip saving, if overwrite is False and file already exists
             if (not overwrite) and out_file.exists():
-                resp["error"] = f"File already exists: {out_file}"
+                error = f"File already exists: {out_file}"
             else:
                 try:
                     copy_img.save(
@@ -119,8 +120,8 @@ def _generate_jpgs(
                     )
                     resp[size] = out_file
                 except Exception as e:
-                    resp["error"] = f"Error saving file {img_in.name}: {e}"
-    return resp
+                    error = f"Error saving file {img_in.name}: {e}"
+    return resp, error
 
 
 async def generate_sam_access_files(
@@ -215,20 +216,20 @@ async def generate_sam_access_files(
             continue
 
         # Generate access-files
-        convert_resp = _generate_jpgs(
+        convert_resp, error = _generate_jpgs(
             filepath, sizes=filesizes, watermark=watermark
         )
 
         # Check response from convert-function
-        if convert_resp.get("error"):
-            print(convert_resp["error"], flush=True)
+        if error:
+            print(error, flush=True)
             continue
 
         print(f"Successfully converted {filename}", flush=True)
 
-        small_path = convert_resp.get(SAM_ACCESS_SMALL_SIZE)
-        medium_path = convert_resp.get(SAM_ACCESS_MEDIUM_SIZE)
-        large_path = convert_resp.get(SAM_ACCESS_LARGE_SIZE)
+        small_path = convert_resp[SAM_ACCESS_SMALL_SIZE]
+        medium_path = convert_resp[SAM_ACCESS_MEDIUM_SIZE]
+        large_path = convert_resp[SAM_ACCESS_LARGE_SIZE]
 
         # Upload access-files
         if upload:
