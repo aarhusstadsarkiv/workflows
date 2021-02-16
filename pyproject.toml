@@ -14,9 +14,9 @@ gooey = "^1.0.8"
 natsort = "^7.1.1"
 pyinstaller = "^4.2"
 pymupdf = "^1.18.8"
-acastorage = {git = "https://github.com/aarhusstadsarkiv/acastorage.git"}
 azure-identity = "^1.5.0"
 azure-keyvault-secrets = "^4.2.0"
+acastorage = {git = "https://github.com/aarhusstadsarkiv/acastorage.git"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"
