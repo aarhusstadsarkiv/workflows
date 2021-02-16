@@ -28,4 +28,9 @@ async def upload_files(
         except Exception as e:
             errors.append(e)
 
+    # Close transporters
+    await conn.close()
+    await vault.close()
+    await credential.close()
+
     return errors
