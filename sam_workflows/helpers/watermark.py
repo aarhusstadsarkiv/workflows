@@ -1,7 +1,7 @@
 from PIL import Image
 
 from ..settings import (
-    SAM_WATERMARK_WIDTH,
+    WATERMARK_WIDTH,
     SAM_WATERMARK_HEIGHT,
     SAM_WATERMARK_WHITE,
     SAM_WATERMARK_BLACK,
@@ -23,12 +23,12 @@ def add_watermark(img: Image) -> Image:
     copy = img.copy()
     grayscale = copy.convert("L")
 
-    anchor_x = copy.width - SAM_WATERMARK_WIDTH
+    anchor_x = copy.width - WATERMARK_WIDTH
     anchor_y = copy.height - SAM_WATERMARK_HEIGHT
-    pixel_count = SAM_WATERMARK_WIDTH * SAM_WATERMARK_HEIGHT
+    pixel_count = WATERMARK_WIDTH * SAM_WATERMARK_HEIGHT
     pixel_values = 0
 
-    for x in range(anchor_x, anchor_x + SAM_WATERMARK_WIDTH):
+    for x in range(anchor_x, anchor_x + WATERMARK_WIDTH):
         for y in range(anchor_y, anchor_y + SAM_WATERMARK_HEIGHT):
             pixel_values = pixel_values + grayscale.getpixel((x, y))
 
