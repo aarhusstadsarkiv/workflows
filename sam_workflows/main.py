@@ -1,16 +1,18 @@
 import codecs
-
+import os
 import sys
+import json
+import asyncio
 from pathlib import Path
 
 from gooey import Gooey, GooeyParser
 
-from .subcommands import make_sam_access_files  # , images2pdf
-
+from sam_workflows.subcommands import generate_sam_access_files
 
 # -----------------------------------------------------------------------------
 # Setup
 # -----------------------------------------------------------------------------
+__version__ = "0.1.0"
 
 utf8_stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
 utf8_stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
@@ -20,7 +22,22 @@ if sys.stderr.encoding != "UTF-8":
     sys.stderr = utf8_stderr  # type: ignore
 
 
-__version__ = "0.1.0"
+def load_config(config_file: Path) -> None:
+
+    if not config_file.is_file():
+        raise FileNotFoundError(
+            f"Configuration-file not found at: {config_file}"
+        )
+
+    try:
+        with open(config_file) as c:
+            config = json.load(c)
+            for k, v in config.items():
+                os.environ[k.upper()] = v
+    except ValueError:
+        raise ValueError(f"Unable to parse config-file: {config_file}")
+    except Exception as e:
+        raise e
 
 
 @Gooey(
@@ -32,7 +49,7 @@ __version__ = "0.1.0"
     show_failure_modal=False,
     show_success_modal=False,
 )
-def main() -> None:
+async def main() -> None:
 
     # General parser
     cli = GooeyParser(description="Collections of workflows to run")
@@ -46,86 +63,64 @@ def main() -> None:
     )
     # Arguments
     sam_access.add_argument(
-        "sam_access_input_file",
+        "sam_access_input_csv",
         metavar="Input",
         help="Path to csv-file exported from SAM",
         widget="FileChooser",
         type=Path,
     )
     sam_access.add_argument(
-        "sam_access_output_file",
+        "sam_access_output_csv",
         metavar="Output",
         help="Path to csv-file to re-import into SAM",
         widget="FileSaver",
         type=Path,
     )
     sam_access.add_argument(
-        "--no-watermark",
-        metavar="No watermark",
+        "--watermark",
+        metavar="Add watermark",
         action="store_true",
-        help="Do not watermark access-images",
+        default=False,
+        help="Add watermark to access-images",
     )
     sam_access.add_argument(
-        "--no-upload",
-        metavar="No upload",
+        "--upload",
+        metavar="Upload",
         action="store_true",
-        help="Do not upload access-images to Azure",
+        default=False,
+        help="Upload access-images to Azure",
     )
     sam_access.add_argument(
         "--overwrite",
         metavar="Overwrite",
         action="store_true",
+        default=False,
         help="Overwrite previously uploaded access-imagess in Azure",
     )
 
-    # -------------------------------------------------------------------------
-    # Images2pdf-parser
-    # -------------------------------------------------------------------------
-    # images2pdf = subs.add_parser(
-    #     "images2pdf",
-    #     help="Generate a single pdf-file from a directory with image-files",
-    # )
-    # images2pdf.add_argument(
-    #     "images2pdf_input_folder",
-    #     metavar="Imagefolder",
-    #     help="Path to folder containing images to combine to a pdf-file",
-    #     widget="DirChooser",
-    #     type=Path,
-    # )
-    # images2pdf.add_argument(
-    #     "images2pdf_output_file",
-    #     metavar="Output pdf-file",
-    #     help="Path to resulting pdf-file",
-    #     widget="FileSaver",
-    #     type=Path,
-    # )
-
     args = cli.parse_args()
+
+    try:
+        load_config(Path("config.json"))
+    except Exception as e:
+        sys.exit(e)
 
     if args.subcommand == "sam_access":
         try:
-            make_sam_access_files(
-                Path(args.sam_access_input_file),
-                Path(args.sam_access_output_file),
-                no_watermark=args.no_watermark,
-                no_upload=args.no_upload,
+            await generate_sam_access_files(
+                Path(args.sam_access_input_csv),
+                Path(args.sam_access_output_csv),
+                watermark=args.watermark,
+                upload=args.upload,
                 overwrite=args.overwrite,
             )
         except Exception as e:
             sys.exit(e)
-
-    # elif args.subcommand == "images2pdf":
-    #     try:
-    #         images2pdf(
-    #             Path(args.images2pdf_input_folder),
-    #             Path(args.images2pdf_output_file),
-    #         )
-    #     except Exception as e:
-    #         sys.exit(e)
 
     else:
         print("No subcommand chosen", flush=True)
 
 
 if __name__ == "__main__":
-    main()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
