@@ -219,12 +219,15 @@ async def generate_sam_access_files(
             continue
 
         # Generate access-files
-        convert_resp = _generate_jpgs(
-            filepath,
-            out_folder=SAM_ACCESS_PATH,
-            sizes=filesizes,
-            watermark=watermark,
-        )
+        try:
+            convert_resp = _generate_jpgs(
+                filepath,
+                out_folder=SAM_ACCESS_PATH,
+                sizes=filesizes,
+                watermark=watermark,
+            )
+        except Exception as e:
+            print(f"Failed to generate jpgs from {filename}: {e}", flush=True)
 
         print(f"Successfully converted {filename}", flush=True)
 
