@@ -12,6 +12,7 @@ from ..helpers import (
     upload_files,
 )
 from ..settings import (
+    SAM_ACCESS_PATH,
     WATERMARK_WIDTH,
     SAM_ACCESS_LARGE_SIZE,
     SAM_ACCESS_MEDIUM_SIZE,
@@ -218,20 +219,18 @@ async def generate_sam_access_files(
             continue
 
         # Generate access-files
-        convert_resp, error = _generate_jpgs(
-            filepath, sizes=filesizes, watermark=watermark
+        convert_resp = _generate_jpgs(
+            filepath,
+            out_folder=SAM_ACCESS_PATH,
+            sizes=filesizes,
+            watermark=watermark,
         )
-
-        # Check response from convert-function
-        if error:
-            print(error, flush=True)
-            continue
 
         print(f"Successfully converted {filename}", flush=True)
 
         small_path = convert_resp[SAM_ACCESS_SMALL_SIZE]
         medium_path = convert_resp[SAM_ACCESS_MEDIUM_SIZE]
-        large_path = convert_resp[SAM_ACCESS_LARGE_SIZE]
+        large_path = convert_resp.get(SAM_ACCESS_LARGE_SIZE)
 
         # Upload access-files
         if upload:
