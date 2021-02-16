@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
-from typing import List, Any, Dict, Optional, Tuple
+from typing import List, Any, Dict, Optional
 
 import fitz
-from PIL import Image, UnidentifiedImageError, ExifTags
+from PIL import Image, ExifTags
 
 from ..helpers import (
     load_csv_from_sam,
@@ -12,11 +12,10 @@ from ..helpers import (
     upload_files,
 )
 from ..settings import (
-    SAM_WATERMARK_WIDTH,
+    WATERMARK_WIDTH,
     SAM_ACCESS_LARGE_SIZE,
     SAM_ACCESS_MEDIUM_SIZE,
     SAM_ACCESS_SMALL_SIZE,
-    SAM_ACCESS_PATH,
     SAM_MASTER_PATH,
     SAM_IMAGE_FORMATS,
     ACASTORAGE_CONTAINER,
@@ -53,20 +52,20 @@ def _convert_pdf_cover_to_image(pdf_in: Path, out_folder: Path) -> Path:
 
 def _generate_jpgs(
     img_in: Path,
+    out_folder: Path,
     quality: int = 80,
     sizes: List = [1920, 640, 150],
     watermark: bool = False,
     overwrite: bool = False,
-) -> Tuple[Dict[int, Path], Optional[str]]:
+) -> Dict[int, Path]:
 
+    # Key-value pairs of filesize (int) and filepath (Path)
     resp: Dict[int, Path] = {}
-    error: Optional[str] = None
+
     try:
         img: Any = Image.open(img_in)
-    except UnidentifiedImageError:
-        error = f"Failed to open {img_in} as an image."
     except Exception as e:
-        error = f"Error opening file {img_in.name}: {e}"
+        raise ImageConvertError(f"Error opening file {img_in.name}: {e}")
     else:
         img.load()
 
@@ -93,11 +92,11 @@ def _generate_jpgs(
 
         for size in sizes:
             copy_img = img.copy()
-            # .thumbnail() doesn't enlarge smaller img and keeps aspect-ratio
+            # thumbnail() doesn't enlarge smaller img and keeps aspect-ratio
             copy_img.thumbnail((size, size))
 
             # If larger than watermark-width, add watermark
-            if watermark and (copy_img.width > SAM_WATERMARK_WIDTH):
+            if watermark and (copy_img.width > WATERMARK_WIDTH):
                 copy_img = add_watermark(copy_img)
 
             # If not rbg, convert before saving as jpg
@@ -107,11 +106,11 @@ def _generate_jpgs(
             size_extensions = {1920: "_l", 640: "_m", 150: "_s"}
 
             new_filename = img_in.stem + size_extensions[size] + ".jpg"
-            out_file = Path(SAM_ACCESS_PATH, new_filename)
+            out_file = out_folder / new_filename
 
             # Skip saving, if overwrite is False and file already exists
             if (not overwrite) and out_file.exists():
-                error = f"File already exists: {out_file}"
+                raise FileExistsError(f"File already exists: {out_file}")
             else:
                 try:
                     copy_img.save(
@@ -121,8 +120,10 @@ def _generate_jpgs(
                     )
                     resp[size] = out_file
                 except Exception as e:
-                    error = f"Error saving file {img_in.name}: {e}"
-    return resp, error
+                    raise ImageConvertError(
+                        f"Error saving file {img_in.name}: {e}"
+                    )
+    return resp
 
 
 async def generate_sam_access_files(
