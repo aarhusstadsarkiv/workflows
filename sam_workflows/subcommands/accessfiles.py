@@ -20,6 +20,7 @@ from ..settings import (
     SAM_MASTER_PATH,
     SAM_IMAGE_FORMATS,
     ACASTORAGE_CONTAINER,
+    PAR_PATH,
 )
 
 # -----------------------------------------------------------------------------
@@ -208,7 +209,7 @@ async def generate_sam_access_files(
         elif filepath.suffix == ".pdf":
             filesizes = [SAM_ACCESS_MEDIUM_SIZE, SAM_ACCESS_SMALL_SIZE]
             filepath = _convert_pdf_cover_to_image(
-                filepath, Path("./images/temp")
+                filepath, PAR_PATH / "images" / "temp"
             )
             record_type = "web_document"
         else:
