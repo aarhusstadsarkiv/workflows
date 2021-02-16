@@ -137,3 +137,7 @@ dmypy.json
 
 # Mac
 .DS_Store
+
+# SAM files
+files_to_upload/
+sam_import.csv
