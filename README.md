@@ -5,5 +5,5 @@ This repository contains the future replacements for the current SAM workflow BA
 ## Development
 Call like so when testing the cli without Gooey:
 ```bash
-python main.py sam_access export_from_sam.csv import_to_sam.csv --upload --overwrite --watermark --ignore-gooey
+python main.py sam_access data/sam_export.csv import_to_sam.csv --upload --overwrite --watermark --ignore-gooey
 ```
