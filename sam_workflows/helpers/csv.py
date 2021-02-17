@@ -14,9 +14,6 @@ class MalformedHeadersError(Exception):
     """Raised when Path is not pointing to a csv-file"""
 
 
-#  SAM-settings
-
-
 def load_csv_from_sam(input: Path) -> List[Dict]:
     # Tests
     if not input.is_file():
