@@ -117,16 +117,14 @@ def generate_jpgs(
         # Skip saving, if overwrite is False and file already exists
         if (not overwrite) and out_file.exists():
             raise FileExistsError(f"File already exists: {out_file}")
-        else:
-            try:
-                copy_img.save(
-                    out_file,
-                    "JPEG",
-                    quality=quality,
-                )
-                resp[size] = out_file
-            except Exception as e:
-                raise ImageConvertError(
-                    f"Error saving file {img_in.name}: {e}"
-                )
+
+        try:
+            copy_img.save(
+                out_file,
+                "JPEG",
+                quality=quality,
+            )
+            resp[size] = out_file
+        except Exception as e:
+            raise ImageConvertError(f"Error saving file {img_in.name}: {e}")
     return resp
