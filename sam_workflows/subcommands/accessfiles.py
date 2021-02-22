@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from sam_workflows.helpers.convert import PDFConvertError
 from typing import List, Dict
 
 from ..helpers import (
@@ -99,7 +100,7 @@ async def generate_sam_access_files(
             print(f"Filepath refers to a directory: {filepath}", flush=True)
             continue
 
-        # filesizes
+        # Common output filesizes for all formats
         filesizes = {SAM_ACCESS_SMALL_SIZE: "_s", SAM_ACCESS_MEDIUM_SIZE: "_m"}
 
         # If image-file
@@ -112,12 +113,15 @@ async def generate_sam_access_files(
                 filepath = pdf_frontpage_to_image(
                     filepath, PAR_PATH / "images" / "temp"
                 )
+            except PDFConvertError as e:
+                print(e, flush=True)
+                continue
             except Exception as e:
                 print(f"Failed pdf-conversion for {filename}: {e}", flush=True)
                 continue
             record_type = "web_document"
         else:
-            print(f"Unable to handle format: {filepath.suffix}", flush=True)
+            print(f"Unable to handle fileformat: {filename}", flush=True)
             continue
 
         # Generate access-files
@@ -132,45 +136,45 @@ async def generate_sam_access_files(
             print(f"Failed to generate jpgs. File not found: {e}", flush=True)
         except ImageConvertError as e:
             print(f"Failed to generate jpgs from {filename}: {e}", flush=True)
+        else:
+            print(f"Successfully converted {filename}", flush=True)
 
-        print(f"Successfully converted {filename}", flush=True)
+            small_path = convert_resp[SAM_ACCESS_SMALL_SIZE]
+            medium_path = convert_resp[SAM_ACCESS_MEDIUM_SIZE]
+            large_path = convert_resp.get(SAM_ACCESS_LARGE_SIZE)
 
-        small_path = convert_resp[SAM_ACCESS_SMALL_SIZE]
-        medium_path = convert_resp[SAM_ACCESS_MEDIUM_SIZE]
-        large_path = convert_resp.get(SAM_ACCESS_LARGE_SIZE)
+            # Upload access-files
+            if upload:
+                filepaths = [small_path, medium_path]
+                if large_path:
+                    filepaths.append(large_path)
 
-        # Upload access-files
-        if upload:
-            filepaths = [small_path, medium_path]
-            if large_path:
-                filepaths.append(large_path)
+                errors = await upload_files(filepaths, overwrite=overwrite)
+                if errors:
+                    print(f"Failed upload for {filename}:", flush=True)
+                    print(f"Error: {errors[0]}", flush=True)
+                    continue
 
-            errors = await upload_files(filepaths, overwrite=overwrite)
-            if errors:
-                print(f"Failed upload for {filename}:", flush=True)
-                print(f"Error: {errors[0]}", flush=True)
-                continue
+                print(f"Uploaded files for {filename}", flush=True)
 
-            print(f"Uploaded files for {filename}", flush=True)
-
-            output.append(
-                {
-                    "oasid": filepath.stem,
-                    "thumbnail": "/".join(
-                        [ACASTORAGE_CONTAINER, small_path.name]
-                    ),
-                    "record_image": "/".join(
-                        [ACASTORAGE_CONTAINER, medium_path.name]
-                    ),
-                    "record_type": record_type,
-                    "large_image": "/".join(
-                        [ACASTORAGE_CONTAINER, large_path.name]
-                    )
-                    if large_path
-                    else "",
-                    "web_document_url": "web_url",
-                }
-            )
+                output.append(
+                    {
+                        "oasid": filepath.stem,
+                        "thumbnail": "/".join(
+                            [ACASTORAGE_CONTAINER, small_path.name]
+                        ),
+                        "record_image": "/".join(
+                            [ACASTORAGE_CONTAINER, medium_path.name]
+                        ),
+                        "record_type": record_type,
+                        "large_image": "/".join(
+                            [ACASTORAGE_CONTAINER, large_path.name]
+                        )
+                        if large_path
+                        else "",
+                        "web_document_url": "web_url",
+                    }
+                )
     if output:
         save_csv_to_sam(output, csv_out)
 
