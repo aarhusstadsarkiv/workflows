@@ -11,26 +11,23 @@ async def upload_files(
     filelist: List[Path],
     upload_folder: Path = Path("."),
     overwrite: bool = False,
-) -> List:
+) -> None:
 
     credential = EnvironmentCredential()
-    vault = SecretClient(
-        vault_url="https://aca-keys.vault.azure.net", credential=credential
-    )
-    secret = await vault.get_secret(environ.get("AZURE_BLOBSTORE_VAULTKEY"))
-    errors = []
+    try:
+        vault = SecretClient(
+            vault_url="https://aca-keys.vault.azure.net", credential=credential
+        )
+        secret = await vault.get_secret(
+            environ.get("AZURE_BLOBSTORE_VAULTKEY")
+        )
 
-    conn = ACAStorage("test", credential=secret.value)
+        conn = ACAStorage("test", credential=secret.value)
 
-    for file_ in filelist:
-        try:
+        for file_ in filelist:
             await conn.upload_file(file_, upload_folder, overwrite=overwrite)
-        except Exception as e:
-            errors.append(e)
-
-    # Close transporters
-    await conn.close()
-    await vault.close()
-    await credential.close()
-
-    return errors
+    finally:
+        # Close transporters
+        await conn.close()
+        await vault.close()
+        await credential.close()

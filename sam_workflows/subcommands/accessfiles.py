@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from sam_workflows.helpers.convert import PDFConvertError
 from typing import List, Dict
+from acastorage.exceptions import UploadError
 
 from ..helpers import (
     load_csv_from_sam,
@@ -149,32 +150,31 @@ async def generate_sam_access_files(
                 if large_path:
                     filepaths.append(large_path)
 
-                errors = await upload_files(filepaths, overwrite=overwrite)
-                if errors:
-                    print(f"Failed upload for {filename}:", flush=True)
-                    print(f"Error: {errors[0]}", flush=True)
-                    continue
+                try:
+                    await upload_files(filepaths, overwrite=overwrite)
+                except UploadError as e:
+                    print(f"{filename} not uploaded. {e}", flush=True)
+                else:
+                    print(f"Uploaded files for {filename}", flush=True)
 
-                print(f"Uploaded files for {filename}", flush=True)
-
-                output.append(
-                    {
-                        "oasid": filepath.stem,
-                        "thumbnail": "/".join(
-                            [ACASTORAGE_CONTAINER, small_path.name]
-                        ),
-                        "record_image": "/".join(
-                            [ACASTORAGE_CONTAINER, medium_path.name]
-                        ),
-                        "record_type": record_type,
-                        "large_image": "/".join(
-                            [ACASTORAGE_CONTAINER, large_path.name]
-                        )
-                        if large_path
-                        else "",
-                        "web_document_url": "web_url",
-                    }
-                )
+                    output.append(
+                        {
+                            "oasid": filepath.stem,
+                            "thumbnail": "/".join(
+                                [ACASTORAGE_CONTAINER, small_path.name]
+                            ),
+                            "record_image": "/".join(
+                                [ACASTORAGE_CONTAINER, medium_path.name]
+                            ),
+                            "record_type": record_type,
+                            "large_image": "/".join(
+                                [ACASTORAGE_CONTAINER, large_path.name]
+                            )
+                            if large_path
+                            else "",
+                            "web_document_url": "web_url",
+                        }
+                    )
     if output:
         save_csv_to_sam(output, csv_out)
 
