@@ -1,8 +1,11 @@
 import json
+from os import environ
 from pathlib import Path
 from sam_workflows.helpers.convert import PDFConvertError
 from typing import List, Dict
 from acastorage.exceptions import UploadError
+
+from sam_workflows.helpers.config import load_config
 
 from ..helpers import (
     load_csv_from_sam,
@@ -20,7 +23,7 @@ from ..settings import (
     SAM_MASTER_PATH,
     SAM_IMAGE_FORMATS,
     ACASTORAGE_CONTAINER,
-    PAR_PATH,
+    PACKAGE_PATH,
 )
 
 # -----------------------------------------------------------------------------
@@ -64,12 +67,19 @@ async def generate_sam_access_files(
         is raised as well.
     """
 
+    # load relevant config-key, if not in environment
+    if not environ.get("AZURE_BLOBSTORE_VAULTKEY"):
+        blobstore_keys = [
+            "AZURE_BLOBSTORE_VAULTKEY",
+            "AZURE_TENANT_ID",
+            "AZURE_CLIENT_ID",
+            "AZURE_CLIENT_SECRET",
+        ]
+        load_config(blobstore_keys)
+
     # Load SAM-csv with rows of file-references
-    try:
-        files: List[Dict] = load_csv_from_sam(csv_in)
-        print("Csv-file loaded", flush=True)
-    except Exception as e:
-        raise e
+    files: List[Dict] = load_csv_from_sam(csv_in)
+    print("Csv-file loaded", flush=True)
 
     output: List[Dict] = []
 
@@ -112,7 +122,7 @@ async def generate_sam_access_files(
         elif filepath.suffix == ".pdf":
             try:
                 filepath = pdf_frontpage_to_image(
-                    filepath, PAR_PATH / "images" / "temp"
+                    filepath, PACKAGE_PATH / "images" / "temp"
                 )
             except PDFConvertError as e:
                 print(e, flush=True)

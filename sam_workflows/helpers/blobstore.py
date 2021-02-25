@@ -6,21 +6,12 @@ from azure.identity.aio import EnvironmentCredential
 from azure.keyvault.secrets.aio import SecretClient
 from acastorage import ACAStorage
 
-from sam_workflows.helpers import load_config
-
-
-PACKAGE_PATH: Path = Path(__file__).parent.parent.resolve()
-
 
 async def upload_files(
     filelist: List[Path],
     upload_folder: Path = Path("."),
     overwrite: bool = False,
 ) -> None:
-
-    # if config not loaded, fetch it
-    if not environ.get("AZURE_BLOBSTORE_VAULTKEY"):
-        load_config(PACKAGE_PATH / "config.json")
 
     credential = EnvironmentCredential()
     try:

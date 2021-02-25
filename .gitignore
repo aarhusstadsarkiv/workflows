@@ -1,5 +1,7 @@
 config.json
 .vscode/
+import_to_sam.csv
+files_to_upload/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
