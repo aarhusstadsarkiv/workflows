@@ -1,7 +1,5 @@
 import codecs
-import os
 import sys
-import json
 import asyncio
 from pathlib import Path
 
@@ -20,24 +18,6 @@ if sys.stdout.encoding != "UTF-8":
     sys.stdout = utf8_stdout  # type: ignore
 if sys.stderr.encoding != "UTF-8":
     sys.stderr = utf8_stderr  # type: ignore
-
-
-def load_config(config_file: Path) -> None:
-
-    if not config_file.is_file():
-        raise FileNotFoundError(
-            f"Configuration-file not found at: {config_file}"
-        )
-
-    try:
-        with open(config_file) as c:
-            config = json.load(c)
-            for k, v in config.items():
-                os.environ[k.upper()] = v
-    except ValueError:
-        raise ValueError(f"Unable to parse config-file: {config_file}")
-    except Exception as e:
-        raise e
 
 
 @Gooey(
@@ -100,11 +80,6 @@ async def main() -> None:
 
     args = cli.parse_args()
 
-    try:
-        load_config(Path("config.json"))
-    except Exception as e:
-        sys.exit(e)
-
     if args.subcommand == "sam_access":
         try:
             await generate_sam_access_files(
@@ -116,7 +91,6 @@ async def main() -> None:
             )
         except Exception as e:
             sys.exit(e)
-
     else:
         print("No subcommand chosen", flush=True)
 
