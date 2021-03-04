@@ -170,6 +170,8 @@ async def generate_sam_access_files(
             )
         except FileNotFoundError as e:
             print(f"Failed to generate jpgs. File not found: {e}", flush=True)
+        except FileExistsError as e:
+            print(e)
         except ImageConvertError as e:
             print(f"Failed to generate jpgs from {filename}: {e}", flush=True)
         else:
