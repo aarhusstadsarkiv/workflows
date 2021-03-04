@@ -1,10 +1,12 @@
 import json
 from os import environ
-from pathlib import Path
-from sam_workflows.helpers.convert import PDFConvertError
 from typing import List, Dict
+from pathlib import Path
+from shutil import copy2
+
 from acastorage.exceptions import UploadError
 
+from sam_workflows.helpers.convert import PDFConvertError
 from sam_workflows.helpers.config import load_config
 
 from ..helpers import (
@@ -69,13 +71,13 @@ async def generate_sam_access_files(
 
     # load relevant config-key, if not in environment
     if not environ.get("AZURE_BLOBSTORE_VAULTKEY"):
-        blobstore_keys = [
+        blobstore_vars = [
             "AZURE_BLOBSTORE_VAULTKEY",
             "AZURE_TENANT_ID",
             "AZURE_CLIENT_ID",
             "AZURE_CLIENT_SECRET",
         ]
-        load_config(blobstore_keys)
+        load_config(blobstore_vars)
 
     # Load SAM-csv with rows of file-references
     files: List[Dict] = load_csv_from_sam(csv_in)
@@ -83,10 +85,14 @@ async def generate_sam_access_files(
 
     output: List[Dict] = []
 
+    # Ensure existence of root-access-folder
+    SAM_ACCESS_PATH.mkdir(parents=True, exist_ok=True)
+
     # Generate access-files
-    for file in files:
+    for row in files:
         # Load SAM-data
-        data = json.loads(file["oasDataJsonEncoded"])
+        file_id: str = row["uniqueID"]
+        data = json.loads(row["oasDataJsonEncoded"])
         legal_status: str = data.get("other_restrictions", "4")
         constractual_status: str = data.get("contractual_status", "1")
         filename: str = data["filename"]
@@ -111,15 +117,36 @@ async def generate_sam_access_files(
             print(f"Filepath refers to a directory: {filepath}", flush=True)
             continue
 
-        # Common output filesizes for all formats
-        filesizes = {SAM_ACCESS_SMALL_SIZE: "_s", SAM_ACCESS_MEDIUM_SIZE: "_m"}
+        # generate access-folder for this file
+        Path(SAM_ACCESS_PATH / file_id).mkdir(parents=True, exist_ok=True)
 
+        # Common access_files for all formats
+        output_files = [
+            {
+                "size": SAM_ACCESS_SMALL_SIZE,
+                "filename": f"{file_id}_s.jpg",
+            },
+            {
+                "size": SAM_ACCESS_MEDIUM_SIZE,
+                "filename": f"{file_id}_m.jpg",
+            },
+        ]
         # If image-file
         if filepath.suffix in SAM_IMAGE_FORMATS:
-            filesizes[SAM_ACCESS_LARGE_SIZE] = "_l"
             record_type = "image"
+            output_files.append(
+                {
+                    "size": SAM_ACCESS_LARGE_SIZE,
+                    "filename": f"{file_id}_l.jpg",
+                }
+            )
         # Elif pdf-file
         elif filepath.suffix == ".pdf":
+            record_type = "web_document"
+            # copy pdf to relevant sub-access-dir
+            copy2(filepath, SAM_ACCESS_PATH / file_id / f"{file_id}_c.pdf")
+
+            # generate png-file from first page in pdf-file
             try:
                 filepath = pdf_frontpage_to_image(
                     filepath, PACKAGE_PATH / "images" / "temp"
@@ -127,39 +154,48 @@ async def generate_sam_access_files(
             except PDFConvertError as e:
                 print(e, flush=True)
                 continue
-            except Exception as e:
-                print(f"Failed pdf-conversion for {filename}: {e}", flush=True)
-                continue
-            record_type = "web_document"
+
         else:
             print(f"Unable to handle fileformat: {filename}", flush=True)
             continue
 
         # Generate access-files
         try:
-            convert_resp = generate_jpgs(
+            jpgs = generate_jpgs(
                 filepath,
-                out_folder=SAM_ACCESS_PATH,
-                sizes=filesizes,
+                out_folder=SAM_ACCESS_PATH / file_id,
+                out_files=output_files,
                 watermark=watermark,
+                overwrite=overwrite,
             )
         except FileNotFoundError as e:
             print(f"Failed to generate jpgs. File not found: {e}", flush=True)
+        except FileExistsError as e:
+            print(e)
         except ImageConvertError as e:
             print(f"Failed to generate jpgs from {filename}: {e}", flush=True)
         else:
             print(f"Successfully converted {filename}", flush=True)
 
-            small_path = convert_resp[SAM_ACCESS_SMALL_SIZE]
-            medium_path = convert_resp[SAM_ACCESS_MEDIUM_SIZE]
-            large_path = convert_resp.get(SAM_ACCESS_LARGE_SIZE)
-
             # Upload access-files
             if upload:
-                filepaths = [small_path, medium_path]
-                if large_path:
-                    filepaths.append(large_path)
-
+                filepaths: List[Dict[str, Path]] = []
+                for size, path in jpgs.items():
+                    filepaths.append(
+                        {
+                            "filepath": path,
+                            "dest_dir": Path(file_id),
+                        }
+                    )
+                if record_type == "web_document":
+                    filepaths.append(
+                        {
+                            "filepath": SAM_ACCESS_PATH
+                            / file_id
+                            / f"{file_id}_c.pdf",
+                            "dest_dir": Path(file_id),
+                        }
+                    )
                 try:
                     await upload_files(filepaths, overwrite=overwrite)
                 except UploadError as e:
@@ -167,24 +203,44 @@ async def generate_sam_access_files(
                 else:
                     print(f"Uploaded files for {filename}", flush=True)
 
-                    output.append(
-                        {
-                            "oasid": filepath.stem,
-                            "thumbnail": "/".join(
-                                [ACASTORAGE_CONTAINER, small_path.name]
-                            ),
-                            "record_image": "/".join(
-                                [ACASTORAGE_CONTAINER, medium_path.name]
-                            ),
-                            "record_type": record_type,
-                            "large_image": "/".join(
-                                [ACASTORAGE_CONTAINER, large_path.name]
-                            )
-                            if large_path
-                            else "",
-                            "web_document_url": "web_url",
-                        }
-                    )
+                    filedata = {
+                        "oasid": file_id,
+                        "record_type": record_type,
+                    }
+                    if record_type == "web_document":
+                        filedata["web_document_url"] = "/".join(
+                            [
+                                ACASTORAGE_CONTAINER,
+                                file_id,
+                                f"{file_id}_c.pdf",
+                            ]
+                        )
+                    if jpgs.get(SAM_ACCESS_SMALL_SIZE):
+                        filedata["thumbnail"] = "/".join(
+                            [
+                                ACASTORAGE_CONTAINER,
+                                file_id,
+                                jpgs[SAM_ACCESS_SMALL_SIZE].name,
+                            ]
+                        )
+                    if jpgs.get(SAM_ACCESS_MEDIUM_SIZE):
+                        filedata["record_image"] = "/".join(
+                            [
+                                ACASTORAGE_CONTAINER,
+                                file_id,
+                                jpgs[SAM_ACCESS_MEDIUM_SIZE].name,
+                            ]
+                        )
+                    if jpgs.get(SAM_ACCESS_LARGE_SIZE):
+                        filedata["large_image"] = "/".join(
+                            [
+                                ACASTORAGE_CONTAINER,
+                                file_id,
+                                jpgs[SAM_ACCESS_LARGE_SIZE].name,
+                            ]
+                        )
+                    output.append(filedata)
+
     if output:
         save_csv_to_sam(output, csv_out)
 

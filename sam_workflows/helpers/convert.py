@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, Optional, Literal
+from typing import Any, List, Dict, Optional
 
 import fitz
 from PIL import Image, ExifTags
@@ -53,15 +53,24 @@ def pdf_frontpage_to_image(pdf_in: Path, out_folder: Path) -> Path:
 def generate_jpgs(
     img_in: Path,
     out_folder: Path,
-    sizes: Dict[int, str] = {1920: "_l", 640: "_m", 150: "_s"},
+    out_files: List[Dict[str, Any]] = [
+        {
+            "size": 1920,
+            "filename": "large.jpg",
+        },
+        {
+            "size": 640,
+            "filename": "medium.jpg",
+        },
+        {
+            "size": 150,
+            "filename": "small.jpg",
+        },
+    ],
     quality: int = 80,
-    affix: Literal["prefix", "postfix"] = "postfix",
     watermark: bool = False,
     overwrite: bool = False,
 ) -> Dict[int, Path]:
-
-    if not img_in.is_file():
-        raise FileNotFoundError(f"Input-path not a file: {img_in}")
 
     out_folder.mkdir(parents=True, exist_ok=True)
 
@@ -95,7 +104,9 @@ def generate_jpgs(
             elif orientation == 8:
                 img = img.rotate(90)
 
-    for size, extension in sizes.items():
+    # for size, extension in sizes.items():
+    for el in out_files:
+        size: int = el.get("size", "")
         copy_img = img.copy()
         # thumbnail() doesn't enlarge smaller img and keeps aspect-ratio
         copy_img.thumbnail((size, size))
@@ -108,23 +119,18 @@ def generate_jpgs(
         if copy_img.mode != "RGB":
             copy_img = copy_img.convert("RGB")
 
-        if affix == "postfix":
-            new_filename = img_in.stem + extension + ".jpg"
-        else:
-            new_filename = extension + img_in.stem + ".jpg"
-        out_file = out_folder / new_filename
+        out_path: Path = out_folder / el["filename"]
 
         # Skip saving, if overwrite is False and file already exists
-        if (not overwrite) and out_file.exists():
-            raise FileExistsError(f"File already exists: {out_file}")
+        if out_path.exists() and not overwrite:
+            raise FileExistsError(f"File already exists: {out_path}")
 
         try:
             copy_img.save(
-                out_file,
-                "JPEG",
+                out_path,
                 quality=quality,
             )
-            resp[size] = out_file
+            resp[size] = out_path
         except Exception as e:
             raise ImageConvertError(f"Error saving file {img_in.name}: {e}")
     return resp
