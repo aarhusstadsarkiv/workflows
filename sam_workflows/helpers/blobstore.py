@@ -1,5 +1,5 @@
 from os import environ
-from typing import List
+from typing import List, Dict
 from pathlib import Path
 
 from azure.identity.aio import EnvironmentCredential
@@ -8,8 +8,7 @@ from acastorage import ACAStorage
 
 
 async def upload_files(
-    filelist: List[Path],
-    upload_folder: Path = Path("."),
+    filelist: List[Dict[str, Path]],
     overwrite: bool = False,
 ) -> None:
 
@@ -24,8 +23,11 @@ async def upload_files(
 
         conn = ACAStorage("test", credential=secret.value)
 
-        for file_ in filelist:
-            await conn.upload_file(file_, upload_folder, overwrite=overwrite)
+        for f in filelist:
+            await conn.upload_file(
+                f["filepath"], f["dest_dir"], overwrite=overwrite
+            )
+
     finally:
         # Close transporters
         await conn.close()
