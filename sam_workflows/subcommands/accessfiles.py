@@ -71,13 +71,13 @@ async def generate_sam_access_files(
 
     # load relevant config-key, if not in environment
     if not environ.get("AZURE_BLOBSTORE_VAULTKEY"):
-        blobstore_vars = [
+        blobstore_envvars = [
             "AZURE_BLOBSTORE_VAULTKEY",
             "AZURE_TENANT_ID",
             "AZURE_CLIENT_ID",
             "AZURE_CLIENT_SECRET",
         ]
-        load_config(blobstore_vars)
+        load_config(blobstore_envvars)
 
     # Load SAM-csv with rows of file-references
     files: List[Dict] = load_csv_from_sam(csv_in)
