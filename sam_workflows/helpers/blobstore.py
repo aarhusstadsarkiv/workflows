@@ -1,4 +1,4 @@
-from os import environ
+from os import environ as env
 from typing import List, Dict
 from pathlib import Path
 
@@ -17,11 +17,10 @@ async def upload_files(
         vault = SecretClient(
             vault_url="https://aca-keys.vault.azure.net", credential=credential
         )
-        secret = await vault.get_secret(
-            environ.get("AZURE_BLOBSTORE_VAULTKEY")
-        )
+        secret = await vault.get_secret(env["AZURE_BLOBSTORE_VAULTKEY"])
 
-        conn = ACAStorage("test", credential=secret.value)
+        container = env["ACASTORAGE_CONTAINER"]
+        conn = ACAStorage(container, credential=secret.value)
 
         for f in filelist:
             await conn.upload_file(
