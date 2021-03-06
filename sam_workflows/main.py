@@ -6,6 +6,7 @@ from pathlib import Path
 from gooey import Gooey, GooeyParser
 
 from sam_workflows.subcommands import generate_sam_access_files
+from sam_workflows.helpers import load_config
 
 # -----------------------------------------------------------------------------
 # Setup
@@ -79,6 +80,7 @@ async def main() -> None:
     )
 
     args = cli.parse_args()
+    load_config()
 
     if args.subcommand == "sam_access":
         try:

@@ -1,13 +1,12 @@
 import json
-from os import environ
+import shutil
+from os import environ as env
 from typing import List, Dict
 from pathlib import Path
-from shutil import copy2
 
 from acastorage.exceptions import UploadError
 
 from sam_workflows.helpers.convert import PDFConvertError
-from sam_workflows.helpers.config import load_config
 
 from ..helpers import (
     load_csv_from_sam,
@@ -16,16 +15,6 @@ from ..helpers import (
     pdf_frontpage_to_image,
     generate_jpgs,
     ImageConvertError,
-)
-from ..settings import (
-    SAM_ACCESS_PATH,
-    SAM_ACCESS_LARGE_SIZE,
-    SAM_ACCESS_MEDIUM_SIZE,
-    SAM_ACCESS_SMALL_SIZE,
-    SAM_MASTER_PATH,
-    SAM_IMAGE_FORMATS,
-    ACASTORAGE_CONTAINER,
-    PACKAGE_PATH,
 )
 
 # -----------------------------------------------------------------------------
@@ -69,28 +58,29 @@ async def generate_sam_access_files(
         is raised as well.
     """
 
-    # load relevant config-key, if not in environment
-    if not environ.get("AZURE_BLOBSTORE_VAULTKEY"):
-        blobstore_envvars = [
-            "AZURE_BLOBSTORE_VAULTKEY",
-            "AZURE_TENANT_ID",
-            "AZURE_CLIENT_ID",
-            "AZURE_CLIENT_SECRET",
-        ]
-        load_config(blobstore_envvars)
+    # Load envvars
+    ACCESS_PATH = Path.home() / env["SAM_ACCESS_PATH"]
+    MASTER_PATH = Path.home() / env["SAM_MASTER_PATH"]
+    TEMP_PATH = Path.home() / env["TEMP_PATH"]
+    ACCESS_LARGE_SIZE = int(env["SAM_ACCESS_LARGE_SIZE"])
+    ACCESS_MEDIUM_SIZE = int(env["SAM_ACCESS_MEDIUM_SIZE"])
+    ACCESS_SMALL_SIZE = int(env["SAM_ACCESS_SMALL_SIZE"])
+    IMAGE_FORMATS = env["SAM_IMAGE_FORMATS"].split(" ")
+    ACASTORAGE_URL = env["ACASTORAGE_URL"]
+    ACASTORAGE_CONTAINER = env["ACASTORAGE_CONTAINER"]
 
-    # Load SAM-csv with rows of file-references
+    # Load csv-file from SAM
     files: List[Dict] = load_csv_from_sam(csv_in)
     print("Csv-file loaded", flush=True)
 
     output: List[Dict] = []
 
-    # Ensure existence of root-access-folder
-    SAM_ACCESS_PATH.mkdir(parents=True, exist_ok=True)
+    # Ensure existence of access-folder
+    ACCESS_PATH.mkdir(parents=True, exist_ok=True)
 
     # Generate access-files
     for row in files:
-        # Load SAM-data
+        # Load SAM-metadata
         file_id: str = row["uniqueID"]
         data = json.loads(row["oasDataJsonEncoded"])
         legal_status: str = data.get("other_restrictions", "4")
@@ -109,7 +99,7 @@ async def generate_sam_access_files(
             continue
 
         # filepath
-        filepath = SAM_MASTER_PATH / filename
+        filepath = MASTER_PATH / filename
         if not filepath.exists():
             print(f"No file found at: {filepath}", flush=True)
             continue
@@ -117,26 +107,26 @@ async def generate_sam_access_files(
             print(f"Filepath refers to a directory: {filepath}", flush=True)
             continue
 
-        # generate access-folder for this file
-        Path(SAM_ACCESS_PATH / file_id).mkdir(parents=True, exist_ok=True)
+        # ensure access-folder for this files access-copies
+        Path(ACCESS_PATH / file_id).mkdir(exist_ok=True)
 
         # Common access_files for all formats
         output_files = [
             {
-                "size": SAM_ACCESS_SMALL_SIZE,
+                "size": ACCESS_SMALL_SIZE,
                 "filename": f"{file_id}_s.jpg",
             },
             {
-                "size": SAM_ACCESS_MEDIUM_SIZE,
+                "size": ACCESS_MEDIUM_SIZE,
                 "filename": f"{file_id}_m.jpg",
             },
         ]
         # If image-file
-        if filepath.suffix in SAM_IMAGE_FORMATS:
+        if filepath.suffix in IMAGE_FORMATS:
             record_type = "image"
             output_files.append(
                 {
-                    "size": SAM_ACCESS_LARGE_SIZE,
+                    "size": ACCESS_LARGE_SIZE,
                     "filename": f"{file_id}_l.jpg",
                 }
             )
@@ -144,13 +134,12 @@ async def generate_sam_access_files(
         elif filepath.suffix == ".pdf":
             record_type = "web_document"
             # copy pdf to relevant sub-access-dir
-            copy2(filepath, SAM_ACCESS_PATH / file_id / f"{file_id}_c.pdf")
+            shutil.copy2(filepath, ACCESS_PATH / file_id / f"{file_id}_c.pdf")
 
             # generate png-file from first page in pdf-file
+            TEMP_PATH.mkdir(exist_ok=True)
             try:
-                filepath = pdf_frontpage_to_image(
-                    filepath, PACKAGE_PATH / "images" / "temp"
-                )
+                filepath = pdf_frontpage_to_image(filepath, TEMP_PATH)
             except PDFConvertError as e:
                 print(e, flush=True)
                 continue
@@ -163,7 +152,7 @@ async def generate_sam_access_files(
         try:
             jpgs = generate_jpgs(
                 filepath,
-                out_folder=SAM_ACCESS_PATH / file_id,
+                out_folder=ACCESS_PATH / file_id,
                 out_files=output_files,
                 watermark=watermark,
                 overwrite=overwrite,
@@ -190,7 +179,7 @@ async def generate_sam_access_files(
                 if record_type == "web_document":
                     filepaths.append(
                         {
-                            "filepath": SAM_ACCESS_PATH
+                            "filepath": ACCESS_PATH
                             / file_id
                             / f"{file_id}_c.pdf",
                             "dest_dir": Path(file_id),
@@ -210,38 +199,45 @@ async def generate_sam_access_files(
                     if record_type == "web_document":
                         filedata["web_document_url"] = "/".join(
                             [
+                                ACASTORAGE_URL,
                                 ACASTORAGE_CONTAINER,
                                 file_id,
                                 f"{file_id}_c.pdf",
                             ]
                         )
-                    if jpgs.get(SAM_ACCESS_SMALL_SIZE):
+                    if jpgs.get(ACCESS_SMALL_SIZE):
                         filedata["thumbnail"] = "/".join(
                             [
+                                ACASTORAGE_URL,
                                 ACASTORAGE_CONTAINER,
                                 file_id,
-                                jpgs[SAM_ACCESS_SMALL_SIZE].name,
+                                jpgs[ACCESS_SMALL_SIZE].name,
                             ]
                         )
-                    if jpgs.get(SAM_ACCESS_MEDIUM_SIZE):
+                    if jpgs.get(ACCESS_MEDIUM_SIZE):
                         filedata["record_image"] = "/".join(
                             [
+                                ACASTORAGE_URL,
                                 ACASTORAGE_CONTAINER,
                                 file_id,
-                                jpgs[SAM_ACCESS_MEDIUM_SIZE].name,
+                                jpgs[ACCESS_MEDIUM_SIZE].name,
                             ]
                         )
-                    if jpgs.get(SAM_ACCESS_LARGE_SIZE):
+                    if jpgs.get(ACCESS_LARGE_SIZE):
                         filedata["large_image"] = "/".join(
                             [
+                                ACASTORAGE_URL,
                                 ACASTORAGE_CONTAINER,
                                 file_id,
-                                jpgs[SAM_ACCESS_LARGE_SIZE].name,
+                                jpgs[ACCESS_LARGE_SIZE].name,
                             ]
                         )
                     output.append(filedata)
 
     if output:
         save_csv_to_sam(output, csv_out)
+
+    if TEMP_PATH.exists():
+        shutil.rmtree(TEMP_PATH)
 
     print("Done", flush=True)

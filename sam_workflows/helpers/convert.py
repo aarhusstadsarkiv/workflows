@@ -1,3 +1,4 @@
+from os import environ as env
 from pathlib import Path
 from typing import Any, List, Dict, Optional
 
@@ -5,8 +6,6 @@ import fitz
 from PIL import Image, ExifTags
 
 from .watermark import add_watermark
-
-from ..settings import WATERMARK_WIDTH
 
 # -----------------------------------------------------------------------------
 # Classes
@@ -74,6 +73,8 @@ def generate_jpgs(
 
     out_folder.mkdir(parents=True, exist_ok=True)
 
+    if watermark:
+        WATERMARK_WIDTH = int(env["SAM_WATERMARK_WIDTH"])
     try:
         img: Any = Image.open(img_in)
     except Exception as e:
