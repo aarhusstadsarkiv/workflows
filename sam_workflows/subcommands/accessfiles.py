@@ -60,16 +60,18 @@ async def generate_sam_access_files(
 
     # Load envvars
     if env.get("OneDrive"):
+        # OneDrive-folder with access-files
         ACCESS_PATH = (
-            Path.home()
-            / env["OneDrive"]
-            / "_DIGITALT_ARKIV"
-            / env["SAM_ACCESS_DIR"]
+            Path(env["OneDrive"]) / "_DIGITALT_ARKIV" / env["SAM_ACCESS_DIR"]
         )
-        # Change to "OneDrive"-vars when SAM-files are moved from M-drive
-        MASTER_PATH = Path(env["SAM_MASTER_PATH"])
+        # OneDrive-folder with masterfiles
+        # MASTER_PATH = (
+        #     Path(env["OneDrive"]) / "_DIGITALT_ARKIV" / env["SAM_MASTER_DIR"]
+        # )
+        # Current master-path on the M-drive
+        MASTER_PATH = Path(env["M_DRIVE_MASTER_PATH"])
     else:
-        ACCESS_PATH = Path.home() / "Downloads" / "accessfiles"
+        ACCESS_PATH = Path.home() / env["APP_DIR"] / "accessfiles"
         MASTER_PATH = Path("../tests/testfiles")
 
     TEMP_PATH = Path.home() / env["APP_DIR"] / "temp"
