@@ -59,15 +59,27 @@ async def generate_sam_access_files(
     """
 
     # Load envvars
-    ACCESS_PATH = Path.home() / env["SAM_ACCESS_PATH"]
-    MASTER_PATH = Path.home() / env["SAM_MASTER_PATH"]
-    TEMP_PATH = Path.home() / env["TEMP_PATH"]
+    if env.get("OneDrive"):
+        ACCESS_PATH = (
+            Path.home()
+            / env["OneDrive"]
+            / "_DIGITALT_ARKIV"
+            / env["SAM_ACCESS_DIR"]
+        )
+        # Change to "OneDrive"-vars when SAM-files are moved from M-drive
+        MASTER_PATH = Path(env["SAM_MASTER_PATH"])
+    else:
+        ACCESS_PATH = Path.home() / "Downloads" / "accessfiles"
+        MASTER_PATH = Path("../tests/testfiles")
+
+    TEMP_PATH = Path.home() / env["APP_DIR"] / "temp"
     ACCESS_LARGE_SIZE = int(env["SAM_ACCESS_LARGE_SIZE"])
     ACCESS_MEDIUM_SIZE = int(env["SAM_ACCESS_MEDIUM_SIZE"])
     ACCESS_SMALL_SIZE = int(env["SAM_ACCESS_SMALL_SIZE"])
     IMAGE_FORMATS = env["SAM_IMAGE_FORMATS"].split(" ")
-    ACASTORAGE_URL = env["ACASTORAGE_URL"]
-    ACASTORAGE_CONTAINER = env["ACASTORAGE_CONTAINER"]
+    ACASTORAGE_URL = "/".join(
+        [env["ACASTORAGE_ROOT"], env["ACASTORAGE_CONTAINER"]]
+    )
 
     # Load csv-file from SAM
     files: List[Dict] = load_csv_from_sam(csv_in)
@@ -121,17 +133,8 @@ async def generate_sam_access_files(
                 "filename": f"{file_id}_m.jpg",
             },
         ]
-        # If image-file
-        if filepath.suffix in IMAGE_FORMATS:
-            record_type = "image"
-            output_files.append(
-                {
-                    "size": ACCESS_LARGE_SIZE,
-                    "filename": f"{file_id}_l.jpg",
-                }
-            )
-        # Elif pdf-file
-        elif filepath.suffix == ".pdf":
+        # If pdf-file
+        if filepath.suffix == ".pdf":
             record_type = "web_document"
             # copy pdf to relevant sub-access-dir
             shutil.copy2(filepath, ACCESS_PATH / file_id / f"{file_id}_c.pdf")
@@ -143,6 +146,16 @@ async def generate_sam_access_files(
             except PDFConvertError as e:
                 print(e, flush=True)
                 continue
+
+        # elif image-file
+        elif filepath.suffix in IMAGE_FORMATS:
+            record_type = "image"
+            output_files.append(
+                {
+                    "size": ACCESS_LARGE_SIZE,
+                    "filename": f"{file_id}_l.jpg",
+                }
+            )
 
         else:
             print(f"Unable to handle fileformat: {filename}", flush=True)
@@ -200,7 +213,6 @@ async def generate_sam_access_files(
                         filedata["web_document_url"] = "/".join(
                             [
                                 ACASTORAGE_URL,
-                                ACASTORAGE_CONTAINER,
                                 file_id,
                                 f"{file_id}_c.pdf",
                             ]
@@ -209,7 +221,6 @@ async def generate_sam_access_files(
                         filedata["thumbnail"] = "/".join(
                             [
                                 ACASTORAGE_URL,
-                                ACASTORAGE_CONTAINER,
                                 file_id,
                                 jpgs[ACCESS_SMALL_SIZE].name,
                             ]
@@ -218,7 +229,6 @@ async def generate_sam_access_files(
                         filedata["record_image"] = "/".join(
                             [
                                 ACASTORAGE_URL,
-                                ACASTORAGE_CONTAINER,
                                 file_id,
                                 jpgs[ACCESS_MEDIUM_SIZE].name,
                             ]
@@ -227,7 +237,6 @@ async def generate_sam_access_files(
                         filedata["large_image"] = "/".join(
                             [
                                 ACASTORAGE_URL,
-                                ACASTORAGE_CONTAINER,
                                 file_id,
                                 jpgs[ACCESS_LARGE_SIZE].name,
                             ]
