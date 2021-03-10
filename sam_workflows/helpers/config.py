@@ -5,34 +5,43 @@ from pathlib import Path
 
 APP_DIR = ".sam_workflows"
 CONFIG_FILE = "config.json"
+CONFIG_KEYS = [
+    "azure_tenant_id",
+    "azure_client_id",
+    "azure_client_secret",
+    "azure_blobstore_vaultkey",
+    "acastorage_root",
+    "acastorage_container",
+    "m_drive_master_path",
+    "sam_master_dir",
+    "sam_access_dir",
+    "sam_access_large_size",
+    "sam_access_medium_size",
+    "sam_access_small_size",
+    "sam_watermark_width",
+    "sam_watermark_height",
+    "sam_watermark_white",
+    "sam_watermark_black",
+    "sam_image_formats",
+]
 
 
 def load_config() -> None:
-    """Loads all key-value pairs from config.json into the environment"""
+    """Loads all CONFIG_KEYS from config.json into the environment"""
 
-    with open(Path.home() / APP_DIR / CONFIG_FILE) as c:
-        config: Dict = json.load(c)
-        for k, v in config.items():
-            os.environ[k.upper()] = str(v)
-        os.environ["APP_DIR"] = APP_DIR
+    conf = Path.home() / APP_DIR / CONFIG_FILE
+    if not conf.is_file():
+        raise FileNotFoundError("Konfigurationsfilen blev ikke fundet.")
 
-
-# def load_envvars(env_vars: List[str]) -> None:
-#     """Loads the passed env_vars in the os.environ, if they're found in
-#     config.json.
-
-#     Parameters
-#     ----------
-#     env_vars : List[str]
-#         List of environment variables to load
-#     """
-#     with open(Path.home() / ".sam_workflows" / "config.json") as c:
-#         config: Dict = json.load(c)
-#         for idx in env_vars:
-#             env = idx.lower()
-#             if env in config:
-#                 os.environ[env.upper()] = config[env]
-#             else:
-#                 raise KeyError(
-#                     f"Required environment variable not in config: {env}"
-#                 )
+    with open(conf) as c:
+        try:
+            config: Dict = json.load(c)
+        except ValueError as e:
+            raise ValueError(
+                f"Konfigurationsfilen kan ikke parses korrekt: {e}"
+            )
+        else:
+            for k, v in config.items():
+                if k.lower() in CONFIG_KEYS:
+                    os.environ[k.upper()] = str(v)
+            os.environ["APP_DIR"] = APP_DIR

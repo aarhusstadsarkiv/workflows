@@ -80,7 +80,10 @@ async def main() -> None:
     )
 
     args = cli.parse_args()
-    load_config()
+    try:
+        load_config()
+    except Exception as e:
+        sys.exit(e)
 
     if args.subcommand == "sam_access":
         try:
