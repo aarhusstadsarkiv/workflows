@@ -5,5 +5,13 @@ This repository contains the future replacements for the current SAM workflow BA
 ## Development
 Call like so when testing the cli without Gooey:
 ```bash
-python main.py sam_access data/sam_export.csv import_to_sam.csv --upload --overwrite --watermark --ignore-gooey
+python main.py sam_access ../tests/test_export.csv ~/Downloads/test_result.csv --upload --overwrite --watermark --ignore-gooey
+```
+
+
+## Production
+Use "OneDrive" envvar to generate "sam_access_path" and "sam_master_path" when in production. It resolves to this:
+
+```
+C:\Users\{azident}\Aarhus kommune\AFD-Aarhus Stadsarkiv - Dokumenter
 ```

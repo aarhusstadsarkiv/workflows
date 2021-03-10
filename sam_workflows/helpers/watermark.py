@@ -18,8 +18,8 @@ def add_watermark(img: Image) -> Image:
 
     WATERMARK_WIDTH = int(env["SAM_WATERMARK_WIDTH"])
     WATERMARK_HEIGHT = int(env["SAM_WATERMARK_HEIGHT"])
-    WATERMARK_WHITE = Path.home() / env["SAM_WATERMARK_WHITE"]
-    WATERMARK_BLACK = Path.home() / env["SAM_WATERMARK_BLACK"]
+    WATERMARK_WHITE = Path.home() / env["APP_DIR"] / env["SAM_WATERMARK_WHITE"]
+    WATERMARK_BLACK = Path.home() / env["APP_DIR"] / env["SAM_WATERMARK_BLACK"]
 
     copy = img.copy()
     grayscale = copy.convert("L")

@@ -3,14 +3,18 @@ import json
 from typing import Dict
 from pathlib import Path
 
+APP_DIR = ".sam_workflows"
+CONFIG_FILE = "config.json"
+
 
 def load_config() -> None:
     """Loads all key-value pairs from config.json into the environment"""
 
-    with open(Path.home() / ".sam_workflows" / "config.json") as c:
+    with open(Path.home() / APP_DIR / CONFIG_FILE) as c:
         config: Dict = json.load(c)
         for k, v in config.items():
             os.environ[k.upper()] = str(v)
+        os.environ["APP_DIR"] = APP_DIR
 
 
 # def load_envvars(env_vars: List[str]) -> None:
