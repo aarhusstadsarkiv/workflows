@@ -72,9 +72,13 @@ async def generate_sam_access_files(
         MASTER_PATH = Path(env["M_DRIVE_MASTER_PATH"])
     else:
         ACCESS_PATH = Path.home() / env["APP_DIR"] / "accessfiles"
-        MASTER_PATH = Path("../tests/testfiles")
+        MASTER_PATH = (
+            Path(__file__).parent.parent.parent.resolve()
+            / "tests"
+            / "testfiles"
+        )
 
-    TEMP_PATH = Path.home() / env["APP_DIR"] / "temp"
+    TEMP_PATH = Path.home() / env["APP_DIR"] / "temp"  # Used for pdf-files
     ACCESS_LARGE_SIZE = int(env["SAM_ACCESS_LARGE_SIZE"])
     ACCESS_MEDIUM_SIZE = int(env["SAM_ACCESS_MEDIUM_SIZE"])
     ACCESS_SMALL_SIZE = int(env["SAM_ACCESS_SMALL_SIZE"])
