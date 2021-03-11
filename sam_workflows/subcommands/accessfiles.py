@@ -188,7 +188,7 @@ async def generate_sam_access_files(
             # Upload access-files
             if upload:
                 filepaths: List[Dict[str, Path]] = []
-                for size, path in jpgs.items():
+                for path in jpgs.values():
                     filepaths.append(
                         {
                             "filepath": path,
@@ -207,7 +207,13 @@ async def generate_sam_access_files(
                 try:
                     await upload_files(filepaths, overwrite=overwrite)
                 except UploadError as e:
-                    print(f"{filename} not uploaded. {e}", flush=True)
+                    if not overwrite and "BlobAlreadyExists" in str(e):
+                        print(
+                            f"{filename} not uploaded as it already exists.",
+                            flush=True,
+                        )
+                    else:
+                        print(f"{filename} not uploaded: {e}", flush=True)
                 else:
                     print(f"Uploaded files for {filename}", flush=True)
 
