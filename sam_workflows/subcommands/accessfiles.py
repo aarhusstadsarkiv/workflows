@@ -4,7 +4,7 @@ from os import environ as env
 from typing import List, Dict
 from pathlib import Path
 
-from acastorage.exceptions import UploadError
+from sam_workflows.acastorage.exceptions import UploadError
 
 from sam_workflows.helpers.convert import PDFConvertError
 

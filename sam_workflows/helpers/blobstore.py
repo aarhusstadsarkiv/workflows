@@ -4,7 +4,7 @@ from pathlib import Path
 
 from azure.identity.aio import EnvironmentCredential
 from azure.keyvault.secrets.aio import SecretClient
-from acastorage import ACAStorage
+from sam_workflows.acastorage import ACAStorage
 
 
 async def upload_files(
