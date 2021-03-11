@@ -16,7 +16,8 @@ pyinstaller = "^4.2"
 pymupdf = "^1.18.9"
 azure-identity = "^1.5.0"
 azure-keyvault-secrets = "^4.2.0"
-acastorage = {git = "https://github.com/aarhusstadsarkiv/acastorage.git"}
+azure-storage-blob = "^12.8.0"
+aiohttp = "^3.7.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"
