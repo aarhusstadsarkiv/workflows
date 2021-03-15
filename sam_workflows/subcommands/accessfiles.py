@@ -62,7 +62,11 @@ async def generate_sam_access_files(
     if env.get("OneDrive"):
         # OneDrive-folder with access-files
         ACCESS_PATH = (
-            Path(env["OneDrive"]) / "_DIGITALT_ARKIV" / env["SAM_ACCESS_DIR"]
+            Path.home()
+            / "Aarhus kommune"
+            / "AFD-Aarhus Stadsarkiv - Dokumenter"
+            / "_DIGITALT_ARKIV"
+            / env["SAM_ACCESS_DIR"]
         )
         # OneDrive-folder with masterfiles
         # MASTER_PATH = (
