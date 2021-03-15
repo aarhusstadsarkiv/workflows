@@ -46,7 +46,7 @@ def save_csv_to_sam(files: List[Dict], path: Path) -> None:
         "web_document_url",
     ]
 
-    with open(path, "w") as ofile:
+    with open(path, "w", newline="") as ofile:
         writer = csv.DictWriter(ofile, fieldnames=sam_output_headers)
         writer.writeheader()
         writer.writerows(files)
