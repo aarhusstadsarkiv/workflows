@@ -39,6 +39,9 @@ MANIFEST
 *.manifest
 *.spec
 
+# Allow
+!sam_workflows.spec
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
