@@ -11,7 +11,7 @@ from sam_workflows.helpers import load_config
 # -----------------------------------------------------------------------------
 # Setup
 # -----------------------------------------------------------------------------
-__version__ = "0.1.0"
+__version__ = "0.3.0"
 
 utf8_stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
 utf8_stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
@@ -22,7 +22,7 @@ if sys.stderr.encoding != "UTF-8":
 
 
 @Gooey(
-    program_name="SAM Workflows",
+    program_name=f"SAM Workflows, version {__version__}",
     program_description="Simple tool to work with SAM-workflows",
     navigation="SIDEBAR",
     default_size=(800, 550),
