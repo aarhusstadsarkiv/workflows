@@ -93,7 +93,8 @@ async def generate_sam_access_files(
 
     # Load csv-file from SAM
     files: List[Dict] = load_csv_from_sam(csv_in)
-    print("Csv-file loaded", flush=True)
+    files_count: int = len(files)
+    print(f"Csv-file loaded. {files_count} files to process.", flush=True)
 
     output: List[Dict] = []
 
@@ -101,13 +102,14 @@ async def generate_sam_access_files(
     ACCESS_PATH.mkdir(parents=True, exist_ok=True)
 
     # Generate access-files
-    for row in files:
+    for idx, row in enumerate(files, start=1):
         # Load SAM-metadata
         file_id: str = row["uniqueID"]
         data = json.loads(row["oasDataJsonEncoded"])
         legal_status: str = data.get("other_restrictions", "4")
         constractual_status: str = data.get("contractual_status", "1")
         filename: str = data["filename"]
+        print(f"Processing {filename} ({idx} of {files_count})", flush=True)
 
         # Check rights
         if int(legal_status.split(";")[0]) > 1:
@@ -154,7 +156,7 @@ async def generate_sam_access_files(
             try:
                 filepath = pdf_frontpage_to_image(filepath, TEMP_PATH)
             except PDFConvertError as e:
-                print(e, flush=True)
+                print(f"Error converting pdf: {e}", flush=True)
                 continue
 
         # elif image-file
@@ -181,13 +183,24 @@ async def generate_sam_access_files(
                 overwrite=overwrite,
             )
         except FileNotFoundError as e:
-            print(f"Failed to generate jpgs. File not found: {e}", flush=True)
+            print(f"Failed conversion. File not found: {e}", flush=True)
         except FileExistsError as e:
-            print(e)
+            print(f"Skipping conversion. File already exists: {e}", flush=True)
         except ImageConvertError as e:
             print(f"Failed to generate jpgs from {filename}: {e}", flush=True)
         else:
             print(f"Successfully converted {filename}", flush=True)
+
+            filedata = {
+                "oasid": file_id,
+                "record_type": record_type,
+            }
+            if jpgs.get(ACCESS_SMALL_SIZE):
+                filedata["thumbnail"] = str(jpgs[ACCESS_SMALL_SIZE])
+            if jpgs.get(ACCESS_MEDIUM_SIZE):
+                filedata["record_image"] = str(jpgs[ACCESS_MEDIUM_SIZE])
+            if jpgs.get(ACCESS_LARGE_SIZE):
+                filedata["large_image"] = str(jpgs[ACCESS_LARGE_SIZE])
 
             # Upload access-files
             if upload:
@@ -213,18 +226,14 @@ async def generate_sam_access_files(
                 except UploadError as e:
                     if not overwrite and "BlobAlreadyExists" in str(e):
                         print(
-                            f"{filename} not uploaded as it already exists.",
+                            f"Skipping upload.{filename} already exists.",
                             flush=True,
                         )
                     else:
-                        print(f"{filename} not uploaded: {e}", flush=True)
+                        print(f"Failed to upload {filename}: {e}", flush=True)
                 else:
                     print(f"Uploaded files for {filename}", flush=True)
 
-                    filedata = {
-                        "oasid": file_id,
-                        "record_type": record_type,
-                    }
                     if record_type == "web_document":
                         filedata["web_document_url"] = "/".join(
                             [
@@ -257,12 +266,17 @@ async def generate_sam_access_files(
                                 jpgs[ACCESS_LARGE_SIZE].name,
                             ]
                         )
-                    output.append(filedata)
+
+            output.append(filedata)
 
     if output:
         save_csv_to_sam(output, csv_out)
+        print("Finished proccessing files", flush=True)
+
+        if len(output) < files_count:
+            print("One or more files were not processed", flush=True)
+    else:
+        print("No new accessfiles have been generated", flush=True)
 
     if TEMP_PATH.exists():
         shutil.rmtree(TEMP_PATH)
-
-    print("Done", flush=True)
