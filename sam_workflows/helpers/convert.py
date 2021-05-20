@@ -109,16 +109,25 @@ def generate_jpgs(
     for el in out_files:
         size: int = el.get("size", "")
         copy_img = img.copy()
+
+        # If not rbg, convert before doing more
+        print(f"Mode: {copy_img.mode}")
+        if copy_img.mode != "RGB":
+            try:
+                copy_img = copy_img.convert("RGB")
+                print(f"New mode: {copy_img.mode}")
+            except Exception as e:
+                print(f"Trying to change image-mode of {img_in.name} to RGB")
         # thumbnail() doesn't enlarge smaller img and keeps aspect-ratio
+        print("Trying thumbnail()")
         copy_img.thumbnail((size, size))
+        print("finished thumbnail")
 
         # If larger than watermark-width, add watermark
         if watermark and (copy_img.width > WATERMARK_WIDTH):
+            print("trying to watermark")
             copy_img = add_watermark(copy_img)
 
-        # If not rbg, convert before saving as jpg
-        if copy_img.mode != "RGB":
-            copy_img = copy_img.convert("RGB")
 
         out_path: Path = out_folder / el["filename"]
 
@@ -127,6 +136,7 @@ def generate_jpgs(
             raise FileExistsError(f"File already exists: {out_path}")
 
         try:
+            print(f"Trying to save")
             copy_img.save(
                 out_path,
                 quality=quality,

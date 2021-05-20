@@ -78,6 +78,13 @@ async def main() -> None:
         default=False,
         help="Overwrite previously uploaded access-imagess in Azure",
     )
+    sam_access.add_argument(
+        "--dryrun",
+        metavar="Dryrun",
+        action="store_true",
+        default=False,
+        help="Disable upload and work with files from 'tests'-folder",
+    )
 
     args = cli.parse_args()
     try:
@@ -93,6 +100,7 @@ async def main() -> None:
                 watermark=args.watermark,
                 upload=args.upload,
                 overwrite=args.overwrite,
+                dryrun=args.dryrun,
             )
         except Exception as e:
             sys.exit(e)

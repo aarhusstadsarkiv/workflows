@@ -28,6 +28,7 @@ async def generate_sam_access_files(
     watermark: bool = False,
     upload: bool = False,
     overwrite: bool = False,
+    dryrun: bool = False,
 ) -> None:
     """Generates, uploads and copies access-images from the files in the
     csv-file.
@@ -59,7 +60,14 @@ async def generate_sam_access_files(
     """
 
     # Load envvars
-    if env.get("OneDrive"):
+    if dryrun:
+        ACCESS_PATH = Path.home() / env["APP_DIR"] / "accessfiles"
+        MASTER_PATH = (
+            Path(__file__).parent.parent.parent.resolve()
+            / "tests"
+            / "testfiles"
+        )
+    elif env.get("OneDrive"):
         # OneDrive-folder with access-files
         ACCESS_PATH = (
             Path.home()
@@ -68,10 +76,7 @@ async def generate_sam_access_files(
             / "_DIGITALT_ARKIV"
             / env["SAM_ACCESS_DIR"]
         )
-        # OneDrive-folder with masterfiles
-        # MASTER_PATH = (
-        #     Path(env["OneDrive"]) / "_DIGITALT_ARKIV" / env["SAM_MASTER_DIR"]
-        # )
+
         # Current master-path on the M-drive
         MASTER_PATH = Path(env["M_DRIVE_MASTER_PATH"])
     else:
