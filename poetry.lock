@@ -291,6 +291,14 @@ python-versions = "*"
 six = "*"
 
 [[package]]
+name = "libtiff"
+version = "0.4.2"
+description = "PyLibTiff: a Python tiff library."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "macholib"
 version = "1.14"
 description = "Mach-O header analysis and editing"
@@ -563,7 +571,7 @@ python-versions = "*"
 
 [[package]]
 name = "pyjwt"
-version = "2.0.1"
+version = "2.1.0"
 description = "JSON Web Token implementation in Python"
 category = "main"
 optional = false
@@ -760,7 +768,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8"
-content-hash = "9dcd4da6e702da9bca35dd37460a4931e3f61a56444d58b23a92d81591f87681"
+content-hash = "920c7551dcb7e5685a21749abea18ab4bb38e9a9d0bd616f034586f01dc725b6"
 
 [metadata.files]
 aiohttp = [
@@ -994,6 +1002,9 @@ isodate = [
     {file = "isodate-0.6.0-py2.py3-none-any.whl", hash = "sha256:aa4d33c06640f5352aca96e4b81afd8ab3b47337cc12089822d6f322ac772c81"},
     {file = "isodate-0.6.0.tar.gz", hash = "sha256:2e364a3d5759479cdb2d37cce6b9376ea504db2ff90252a2e5b7cc89cc9ff2d8"},
 ]
+libtiff = [
+    {file = "libtiff-0.4.2.tar.gz", hash = "sha256:8b80660541bfc51309b22dd676bcc94a8d77324b00fba3d331b7f564775f17a6"},
+]
 macholib = [
     {file = "macholib-1.14-py2.py3-none-any.whl", hash = "sha256:c500f02867515e6c60a27875b408920d18332ddf96b4035ef03beddd782d4281"},
     {file = "macholib-1.14.tar.gz", hash = "sha256:0c436bc847e7b1d9bda0560351bf76d7caf930fb585a828d13608839ef42c432"},
@@ -1226,8 +1237,8 @@ pyinstaller-hooks-contrib = [
     {file = "pyinstaller_hooks_contrib-2020.11-py2.py3-none-any.whl", hash = "sha256:fa8280b79d8a2b267a2e43ff44f73b3e4a68fc8d205b8d34e8e06c960f7c2fcf"},
 ]
 pyjwt = [
-    {file = "PyJWT-2.0.1-py3-none-any.whl", hash = "sha256:b70b15f89dc69b993d8a8d32c299032d5355c82f9b5b7e851d1a6d706dffe847"},
-    {file = "PyJWT-2.0.1.tar.gz", hash = "sha256:a5c70a06e1f33d81ef25eecd50d50bd30e34de1ca8b2b9fa3fe0daaabcf69bf7"},
+    {file = "PyJWT-2.1.0-py3-none-any.whl", hash = "sha256:934d73fbba91b0483d3857d1aff50e96b2a892384ee2c17417ed3203f173fca1"},
+    {file = "PyJWT-2.1.0.tar.gz", hash = "sha256:fba44e7898bbca160a2b2b501f492824fc8382485d3a6f11ba5d0c1937ce6130"},
 ]
 pymupdf = [
     {file = "PyMuPDF-1.18.12-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:fc63949b63990baa4b738a151bc2d745e3b0d0bc0be5ac2e4fc14f4898d99a70"},

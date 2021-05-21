@@ -11,7 +11,7 @@ from sam_workflows.helpers import load_config
 # -----------------------------------------------------------------------------
 # Setup
 # -----------------------------------------------------------------------------
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 utf8_stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
 utf8_stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
@@ -23,8 +23,10 @@ if sys.stderr.encoding != "UTF-8":
 
 @Gooey(
     program_name=f"SAM Workflows, version {__version__}",
-    program_description="Simple tool to work with SAM-workflows",
+    program_description="Værktøj til at arbejde med SAM-registreringer",
     navigation="SIDEBAR",
+    sidebar_title="Værktøjer",
+    show_sidebar=True,
     default_size=(800, 550),
     show_restart_button=False,
     show_failure_modal=False,
@@ -40,50 +42,46 @@ async def main() -> None:
     # SAMaccess-parser
     # -------------------------------------------------------------------------
     sam_access = subs.add_parser(
-        "sam_access", help="Generate access-files from master-files"
+        "accessfiles", help="Lav accessfiler ud fra digitale materialer, som er registreret i SAM"
     )
     # Arguments
     sam_access.add_argument(
         "sam_access_input_csv",
         metavar="Input",
-        help="Path to csv-file exported from SAM",
+        help="Sti til csv-fil, der er eksporteret fra SAM",
         widget="FileChooser",
         type=Path,
     )
     sam_access.add_argument(
         "sam_access_output_csv",
         metavar="Output",
-        help="Path to csv-file to re-import into SAM",
+        help="Sti til csv-fil, der skal re-importeres til SAM",
         widget="FileSaver",
         type=Path,
     )
     sam_access.add_argument(
-        "--watermark",
-        metavar="Add watermark",
+        "-p", "--plain",
+        metavar="Vandmærker",
         action="store_true",
-        default=False,
-        help="Add watermark to access-images",
+        help="Undlad at påføre vandmærker",
     )
     sam_access.add_argument(
         "--upload",
         metavar="Upload",
         action="store_true",
-        default=False,
-        help="Upload access-images to Azure",
+        help="Upload accessfilerne til vores online server",
     )
     sam_access.add_argument(
         "--overwrite",
-        metavar="Overwrite",
+        metavar="Overskriv",
         action="store_true",
-        default=False,
-        help="Overwrite previously uploaded access-imagess in Azure",
+        help="Overskriv tidligere uploadede accessfiler",
     )
     sam_access.add_argument(
         "--dryrun",
-        metavar="Dryrun",
+        metavar="Testkørsel",
         action="store_true",
-        default=False,
-        help="Disable upload and work with files from 'tests'-folder",
+        help="Lav testkørsel. Accessfilerne bliver kun lagt i din overførselsmappe",
     )
 
     args = cli.parse_args()
@@ -92,12 +90,12 @@ async def main() -> None:
     except Exception as e:
         sys.exit(e)
 
-    if args.subcommand == "sam_access":
+    if args.subcommand == "accessfiles":
         try:
             await generate_sam_access_files(
                 Path(args.sam_access_input_csv),
                 Path(args.sam_access_output_csv),
-                watermark=args.watermark,
+                no_watermark=args.plain,
                 upload=args.upload,
                 overwrite=args.overwrite,
                 dryrun=args.dryrun,

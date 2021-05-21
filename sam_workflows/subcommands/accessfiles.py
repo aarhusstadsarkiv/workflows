@@ -25,7 +25,7 @@ from ..helpers import (
 async def generate_sam_access_files(
     csv_in: Path,
     csv_out: Path,
-    watermark: bool = False,
+    no_watermark: bool = False,
     upload: bool = False,
     overwrite: bool = False,
     dryrun: bool = False,
@@ -39,7 +39,7 @@ async def generate_sam_access_files(
         Csv-file exported from SAM
     csv_out: Path
         Csv-file to re-import into SAM
-    watermark: bool
+    no_watermark: bool
         Watermark access-files. Defaults to False
     upload: bool
         Upload the generated access-files to Azure. Defaults to False
@@ -184,7 +184,7 @@ async def generate_sam_access_files(
                 filepath,
                 out_folder=ACCESS_PATH / file_id,
                 out_files=output_files,
-                watermark=watermark,
+                no_watermark=no_watermark,
                 overwrite=overwrite,
             )
         except FileNotFoundError as e:
