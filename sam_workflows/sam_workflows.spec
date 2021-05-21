@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['main.py'],
-             pathex=['D:\\repos\\sam-workflows\\sam_workflows'],
+             pathex=['C:\\Users\\azkb075\\github\\sam-workflows\\sam_workflows'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -30,4 +30,5 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True )
+          console=False,
+          windowed=True )

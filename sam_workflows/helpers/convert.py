@@ -2,6 +2,7 @@ from os import environ as env
 from pathlib import Path
 from typing import Any, List, Dict, Optional
 
+import numpy as np
 import fitz
 from PIL import Image, ExifTags
 
@@ -67,14 +68,12 @@ def generate_jpgs(
         },
     ],
     quality: int = 80,
-    watermark: bool = False,
+    no_watermark: bool = False,
     overwrite: bool = False,
 ) -> Dict[int, Path]:
 
     out_folder.mkdir(parents=True, exist_ok=True)
 
-    if watermark:
-        WATERMARK_WIDTH = int(env["SAM_WATERMARK_WIDTH"])
     try:
         img: Any = Image.open(img_in)
     except Exception as e:
@@ -109,16 +108,27 @@ def generate_jpgs(
     for el in out_files:
         size: int = el.get("size", "")
         copy_img = img.copy()
+
+        if "16" in copy_img.mode:
+            # https://github.com/openvinotoolkit/cvat/pull/342/commits/ \
+            # 1520641ce65c4d3d90cb1011f83603a70943f479
+            im_data = np.array(copy_img)
+            copy_img = Image.fromarray(im_data // (im_data.max() // 2 ** 8))
+
+            # https://github.com/python-pillow/Pillow/issues/2574
+            # c_img = ImageMath.eval('im/256', {'im': c_img}).convert('RGB')
+
+        # If not rbg, convert before doing more
+        if copy_img.mode != "RGB":
+            copy_img = copy_img.convert("RGB")
+
         # thumbnail() doesn't enlarge smaller img and keeps aspect-ratio
         copy_img.thumbnail((size, size))
 
         # If larger than watermark-width, add watermark
-        if watermark and (copy_img.width > WATERMARK_WIDTH):
-            copy_img = add_watermark(copy_img)
-
-        # If not rbg, convert before saving as jpg
-        if copy_img.mode != "RGB":
-            copy_img = copy_img.convert("RGB")
+        if not no_watermark:
+            if copy_img.width > int(env["SAM_WATERMARK_WIDTH"]):
+                copy_img = add_watermark(copy_img)
 
         out_path: Path = out_folder / el["filename"]
 

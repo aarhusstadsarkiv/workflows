@@ -25,9 +25,10 @@ from ..helpers import (
 async def generate_sam_access_files(
     csv_in: Path,
     csv_out: Path,
-    watermark: bool = False,
+    no_watermark: bool = False,
     upload: bool = False,
     overwrite: bool = False,
+    dryrun: bool = False,
 ) -> None:
     """Generates, uploads and copies access-images from the files in the
     csv-file.
@@ -38,7 +39,7 @@ async def generate_sam_access_files(
         Csv-file exported from SAM
     csv_out: Path
         Csv-file to re-import into SAM
-    watermark: bool
+    no_watermark: bool
         Watermark access-files. Defaults to False
     upload: bool
         Upload the generated access-files to Azure. Defaults to False
@@ -59,7 +60,14 @@ async def generate_sam_access_files(
     """
 
     # Load envvars
-    if env.get("OneDrive"):
+    if dryrun:
+        ACCESS_PATH = Path.home() / env["APP_DIR"] / "accessfiles"
+        MASTER_PATH = (
+            Path(__file__).parent.parent.parent.resolve()
+            / "tests"
+            / "testfiles"
+        )
+    elif env.get("OneDrive"):
         # OneDrive-folder with access-files
         ACCESS_PATH = (
             Path.home()
@@ -68,10 +76,7 @@ async def generate_sam_access_files(
             / "_DIGITALT_ARKIV"
             / env["SAM_ACCESS_DIR"]
         )
-        # OneDrive-folder with masterfiles
-        # MASTER_PATH = (
-        #     Path(env["OneDrive"]) / "_DIGITALT_ARKIV" / env["SAM_MASTER_DIR"]
-        # )
+
         # Current master-path on the M-drive
         MASTER_PATH = Path(env["M_DRIVE_MASTER_PATH"])
     else:
@@ -179,7 +184,7 @@ async def generate_sam_access_files(
                 filepath,
                 out_folder=ACCESS_PATH / file_id,
                 out_files=output_files,
-                watermark=watermark,
+                no_watermark=no_watermark,
                 overwrite=overwrite,
             )
         except FileNotFoundError as e:
