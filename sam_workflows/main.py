@@ -42,7 +42,8 @@ async def main() -> None:
     # SAMaccess-parser
     # -------------------------------------------------------------------------
     sam_access = subs.add_parser(
-        "accessfiles", help="Lav accessfiler ud fra digitale materialer, som er registreret i SAM"
+        "accessfiles",
+        help="Lav accessfiler ud fra digitale registreringer i SAM",
     )
     # Arguments
     sam_access.add_argument(
@@ -60,7 +61,8 @@ async def main() -> None:
         type=Path,
     )
     sam_access.add_argument(
-        "-p", "--plain",
+        "-p",
+        "--plain",
         metavar="Vandmærker",
         action="store_true",
         help="Undlad at påføre vandmærker",
@@ -81,7 +83,7 @@ async def main() -> None:
         "--dryrun",
         metavar="Testkørsel",
         action="store_true",
-        help="Lav testkørsel. Accessfilerne bliver kun lagt i din overførselsmappe",
+        help="Accessfilerne lægges kun i din 'Overførsler'-mappe",
     )
 
     args = cli.parse_args()

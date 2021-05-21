@@ -4,7 +4,7 @@ from typing import Any, List, Dict, Optional
 
 import numpy as np
 import fitz
-from PIL import Image, ExifTags, ImageMath
+from PIL import Image, ExifTags
 
 from .watermark import add_watermark
 
@@ -110,12 +110,13 @@ def generate_jpgs(
         copy_img = img.copy()
 
         if "16" in copy_img.mode:
-            # https://github.com/openvinotoolkit/cvat/pull/342/commits/1520641ce65c4d3d90cb1011f83603a70943f479
+            # https://github.com/openvinotoolkit/cvat/pull/342/commits/ \
+            # 1520641ce65c4d3d90cb1011f83603a70943f479
             im_data = np.array(copy_img)
-            copy_img = Image.fromarray(im_data // (im_data.max() // 2**8))
+            copy_img = Image.fromarray(im_data // (im_data.max() // 2 ** 8))
 
-            # https://github.com/python-pillow/Pillow/issues/2574#issuecomment-307795972
-            # copy_img = ImageMath.eval('im/256', {'im': copy_img}).convert('RGB')
+            # https://github.com/python-pillow/Pillow/issues/2574
+            # c_img = ImageMath.eval('im/256', {'im': c_img}).convert('RGB')
 
         # If not rbg, convert before doing more
         if copy_img.mode != "RGB":
