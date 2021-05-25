@@ -20,6 +20,10 @@ if sys.stdout.encoding != "UTF-8":
 if sys.stderr.encoding != "UTF-8":
     sys.stderr = utf8_stderr  # type: ignore
 
+# https://chriskiehl.com/article/packaging-gooey-with-pyinstaller
+# nonbuffered_stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
+# sys.stdout = nonbuffered_stdout
+
 
 @Gooey(
     program_name=f"SAM Workflows, version {__version__}",
