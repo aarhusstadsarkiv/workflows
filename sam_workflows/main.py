@@ -60,7 +60,7 @@ async def main() -> None:
             "initial_value": str(Path(Path.home(), "Workflows", "job.csv")),
             "default_dir": str(Path(Path.home(), "Workflows")),
             "full_width": True,
-        }
+        },
     )
     sam_access.add_argument(
         "sam_access_output_csv",
@@ -72,7 +72,7 @@ async def main() -> None:
             "initial_value": str(Path(Path.home(), "Workflows", "done.csv")),
             "default_dir": str(Path(Path.home(), "Workflows")),
             "full_width": True,
-        }
+        },
     )
     sam_access.add_argument(
         "-p",
