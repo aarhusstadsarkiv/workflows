@@ -26,7 +26,7 @@ async def generate_sam_access_files(
     csv_in: Path,
     csv_out: Path,
     no_watermark: bool = False,
-    upload: bool = False,
+    no_upload: bool = False,
     overwrite: bool = False,
     dryrun: bool = False,
 ) -> None:
@@ -40,9 +40,9 @@ async def generate_sam_access_files(
     csv_out: Path
         Csv-file to re-import into SAM
     no_watermark: bool
-        Watermark access-files. Defaults to False
-    upload: bool
-        Upload the generated access-files to Azure. Defaults to False
+        Do not add watermarks to access-files. Defaults to False
+    no_upload: bool
+        Do not upload the generated access-files to Azure. Defaults to False
     overwrite: bool
         Overwrite existing files in both local storage and Azure. Defaults to
         False
@@ -61,7 +61,7 @@ async def generate_sam_access_files(
 
     # Load envvars
     if dryrun:
-        ACCESS_PATH = Path.home() / env["APP_DIR"] / "accessfiles"
+        ACCESS_PATH = Path.home() / "Downloads" / "sam_workflow_accessfiles"
         MASTER_PATH = (
             Path(__file__).parent.parent.parent.resolve()
             / "tests"
@@ -80,7 +80,7 @@ async def generate_sam_access_files(
         # Current master-path on the M-drive
         MASTER_PATH = Path(env["M_DRIVE_MASTER_PATH"])
     else:
-        ACCESS_PATH = Path.home() / env["APP_DIR"] / "accessfiles"
+        ACCESS_PATH = Path.home() / "Downloads" / "sam_access_accessfiles"
         MASTER_PATH = (
             Path(__file__).parent.parent.parent.resolve()
             / "tests"
@@ -208,7 +208,7 @@ async def generate_sam_access_files(
                 filedata["large_image"] = str(jpgs[ACCESS_LARGE_SIZE])
 
             # Upload access-files
-            if upload:
+            if not no_upload:
                 filepaths: List[Dict[str, Path]] = []
                 for path in jpgs.values():
                     filepaths.append(

@@ -5,5 +5,5 @@ This repository contains the future replacements for the current SAM workflow BA
 ## Development
 Call like so when testing the cli without Gooey:
 ```bash
-python main.py sam_access ../tests/test_export.csv C:/Users/azkb075/Downloads/test_result.csv --overwrite --dryrun --watermark --ignore-gooey
+python main.py accessfiles ../tests/test_export.csv C:/Users/azkb075/Downloads/test_result.csv --overwrite --local --dryrun --plain --ignore-gooey
 ```
