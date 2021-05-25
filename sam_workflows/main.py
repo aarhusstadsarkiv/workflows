@@ -58,7 +58,7 @@ async def main() -> None:
         type=Path,
         gooey_options={
             "initial_value": str(Path(Path.home(), "Workflows", "job.csv")),
-            "default_dir":  str(Path(Path.home(), "Workflows")),
+            "default_dir": str(Path(Path.home(), "Workflows")),
             "full_width": True,
         }
     )
@@ -70,7 +70,7 @@ async def main() -> None:
         type=Path,
         gooey_options={
             "initial_value": str(Path(Path.home(), "Workflows", "done.csv")),
-            "default_dir":  str(Path(Path.home(), "Workflows")),
+            "default_dir": str(Path(Path.home(), "Workflows")),
             "full_width": True,
         }
     )
