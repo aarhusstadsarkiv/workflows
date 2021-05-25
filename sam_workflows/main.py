@@ -11,7 +11,7 @@ from sam_workflows.helpers import load_config
 # -----------------------------------------------------------------------------
 # Setup
 # -----------------------------------------------------------------------------
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 utf8_stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
 utf8_stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
