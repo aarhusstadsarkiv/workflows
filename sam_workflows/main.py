@@ -57,7 +57,8 @@ async def main() -> None:
         widget="FileChooser",
         type=Path,
         gooey_options={
-            "initial_value": f"{Path.home()}\Workflows\SAM-jobs\job-to-convert.csv",
+            "initial_value": str(Path(Path.home(), "Workflows", "job.csv")),
+            "default_dir":  str(Path(Path.home(), "Workflows")),
             "full_width": True,
         }
     )
@@ -68,7 +69,8 @@ async def main() -> None:
         widget="FileSaver",
         type=Path,
         gooey_options={
-            "initial_value": f"{Path.home()}\Workflows\SAM-jobs\job-converted.csv",
+            "initial_value": str(Path(Path.home(), "Workflows", "done.csv")),
+            "default_dir":  str(Path(Path.home(), "Workflows")),
             "full_width": True,
         }
     )
