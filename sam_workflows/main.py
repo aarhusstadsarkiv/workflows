@@ -11,7 +11,7 @@ from sam_workflows.helpers import load_config
 # -----------------------------------------------------------------------------
 # Setup
 # -----------------------------------------------------------------------------
-__version__ = "0.4.1"
+__version__ = "0.5.0"
 
 utf8_stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
 utf8_stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
@@ -31,7 +31,7 @@ if sys.stderr.encoding != "UTF-8":
     navigation="SIDEBAR",
     sidebar_title="Værktøjer",
     show_sidebar=True,
-    default_size=(800, 550),
+    default_size=(1000, 650),
     show_restart_button=False,
     show_failure_modal=False,
     show_success_modal=False,
@@ -56,6 +56,10 @@ async def main() -> None:
         help="Sti til csv-fil, der er eksporteret fra SAM",
         widget="FileChooser",
         type=Path,
+        gooey_options={
+            "initial_value": f"{Path.home()}\Workflows\SAM-jobs\job-to-convert.csv",
+            "full_width": True,
+        }
     )
     sam_access.add_argument(
         "sam_access_output_csv",
@@ -63,6 +67,10 @@ async def main() -> None:
         help="Sti til csv-fil, der skal re-importeres til SAM",
         widget="FileSaver",
         type=Path,
+        gooey_options={
+            "initial_value": f"{Path.home()}\Workflows\SAM-jobs\job-converted.csv",
+            "full_width": True,
+        }
     )
     sam_access.add_argument(
         "-p",
@@ -72,16 +80,17 @@ async def main() -> None:
         help="Undlad at påføre vandmærker",
     )
     sam_access.add_argument(
-        "--upload",
+        "-l",
+        "--local",
         metavar="Upload",
         action="store_true",
-        help="Upload accessfilerne til vores online server",
+        help="Undlad at uploade filerne til vores online server",
     )
     sam_access.add_argument(
         "--overwrite",
         metavar="Overskriv",
         action="store_true",
-        help="Overskriv tidligere uploadede accessfiler",
+        help="Overskriv tidligere accessfiler lokalt og online",
     )
     sam_access.add_argument(
         "--dryrun",
@@ -102,7 +111,7 @@ async def main() -> None:
                 Path(args.sam_access_input_csv),
                 Path(args.sam_access_output_csv),
                 no_watermark=args.plain,
-                upload=args.upload,
+                no_upload=args.local,
                 overwrite=args.overwrite,
                 dryrun=args.dryrun,
             )
