@@ -11,7 +11,7 @@ from sam_workflows.helpers import load_config
 # -----------------------------------------------------------------------------
 # Setup
 # -----------------------------------------------------------------------------
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 utf8_stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
 utf8_stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
@@ -19,6 +19,10 @@ if sys.stdout.encoding != "UTF-8":
     sys.stdout = utf8_stdout  # type: ignore
 if sys.stderr.encoding != "UTF-8":
     sys.stderr = utf8_stderr  # type: ignore
+
+# https://chriskiehl.com/article/packaging-gooey-with-pyinstaller
+# nonbuffered_stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
+# sys.stdout = nonbuffered_stdout
 
 
 @Gooey(
