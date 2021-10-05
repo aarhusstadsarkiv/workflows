@@ -4,9 +4,9 @@ from os import environ as env
 from typing import List, Dict
 from pathlib import Path
 
-from sam_workflows.acastorage.exceptions import UploadError
+from source.acastorage.exceptions import UploadError
 
-from sam_workflows.helpers.convert import PDFConvertError
+from source.helpers.convert import PDFConvertError
 
 from ..helpers import (
     load_csv_from_sam,
@@ -27,7 +27,7 @@ async def generate_sam_access_files(
     csv_in: Path,
     csv_out: Path,
     no_watermark: bool = False,
-    no_upload: bool = False,
+    local: bool = False,
     overwrite: bool = False,
     dryrun: bool = False,
 ) -> None:
@@ -42,7 +42,7 @@ async def generate_sam_access_files(
         Csv-file to re-import into SAM
     no_watermark: bool
         Do not add watermarks to access-files. Defaults to False
-    no_upload: bool
+    local: bool
         Do not upload the generated access-files to Azure. Defaults to False
     overwrite: bool
         Overwrite existing files in both local storage and Azure. Defaults to
@@ -228,7 +228,7 @@ async def generate_sam_access_files(
                 filedata["large_image"] = str(jpgs[ACCESS_LARGE_SIZE])
 
             # Upload access-files
-            if not no_upload:
+            if not local:
                 filepaths: List[Dict[str, Path]] = []
                 for path in jpgs.values():
                     filepaths.append(

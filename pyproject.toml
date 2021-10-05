@@ -9,9 +9,8 @@ readme = "README.md"
 homepage = "https://www.aarhusstadsarkiv.dk/"
 
 [tool.poetry.dependencies]
-python = "~3.8"
+python = ">=3.8"
 gooey = "^1.0.8"
-natsort = "^7.1.1"
 pyinstaller = "^4.3"
 pymupdf = "^1.18.12"
 azure-identity = "^1.5.0"
