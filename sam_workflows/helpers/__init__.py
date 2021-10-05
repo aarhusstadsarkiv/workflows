@@ -8,6 +8,7 @@ from .convert import (
     PDFConvertError,
     ImageConvertError,
 )
+from .subprocess import run_proc, ProcessError
 
 __all__ = [
     "load_csv_from_sam",
@@ -19,4 +20,6 @@ __all__ = [
     "PDFConvertError",
     "ImageConvertError",
     "load_config",
+    "run_proc",
+    "ProcessError",
 ]

@@ -23,6 +23,7 @@ CONFIG_KEYS = [
     "sam_watermark_white",
     "sam_watermark_black",
     "sam_image_formats",
+    "sam_video_formats",
 ]
 
 

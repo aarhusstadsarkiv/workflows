@@ -77,14 +77,14 @@ async def main() -> None:
     sam_access.add_argument(
         "-p",
         "--plain",
-        metavar="Vandmærker",
+        metavar="Uden vandmærker",
         action="store_true",
         help="Undlad at påføre vandmærker",
     )
     sam_access.add_argument(
         "-l",
         "--local",
-        metavar="Upload",
+        metavar="Upload ikke kopier af filerne",
         action="store_true",
         help="Undlad at uploade filerne til vores online server",
     )

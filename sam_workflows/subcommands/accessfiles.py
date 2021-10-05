@@ -15,6 +15,7 @@ from ..helpers import (
     pdf_frontpage_to_image,
     generate_jpgs,
     ImageConvertError,
+    VideoConvertError,
 )
 
 # -----------------------------------------------------------------------------
@@ -57,6 +58,9 @@ async def generate_sam_access_files(
         Raised when errors in conversion occur. Errors from PIL are caught
         and re-raised with this error. If no pdf-files are loaded, this error
         is raised as well.
+    VideoConvertError
+        Raised when errors in conversion occur. Errors from ffmpeg are caught
+        and re-raised with this error.
     """
 
     # Load envvars
@@ -92,6 +96,7 @@ async def generate_sam_access_files(
     ACCESS_MEDIUM_SIZE = int(env["SAM_ACCESS_MEDIUM_SIZE"])
     ACCESS_SMALL_SIZE = int(env["SAM_ACCESS_SMALL_SIZE"])
     IMAGE_FORMATS = env["SAM_IMAGE_FORMATS"].split(" ")
+    VIDEO_FORMATS = env["SAM_VIDEO_FORMATS"].split(" ")
     ACASTORAGE_URL = "/".join(
         [env["ACASTORAGE_ROOT"], env["ACASTORAGE_CONTAINER"]]
     )
@@ -174,6 +179,16 @@ async def generate_sam_access_files(
                 }
             )
 
+        # elif video-file
+        elif filepath.suffix in VIDEO_FORMATS:
+            record_type = "video"
+            output_files.append(
+                {
+                    "size": ACCESS_LARGE_SIZE,
+                    "filename": f"{file_id}_l.jpg",
+                }
+            )
+
         else:
             print(f"Unable to handle fileformat: {filename}", flush=True)
             continue
@@ -193,6 +208,11 @@ async def generate_sam_access_files(
             print(f"Skipping conversion. File already exists: {e}", flush=True)
         except ImageConvertError as e:
             print(f"Failed to generate jpgs from {filename}: {e}", flush=True)
+        except VideoConvertError as e:
+            print(
+                f"Failed to generate accessfiles from {filename}: {e}",
+                flush=True,
+            )
         else:
             print(f"Successfully converted {filename}", flush=True)
 
