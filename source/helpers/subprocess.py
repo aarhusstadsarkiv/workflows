@@ -10,7 +10,7 @@ class TimeoutError(Exception):
     """Implements error to raise when a process call times out."""
 
 
-def run_command(cmd: List, timeout: int = 10):
+def run_command(cmd: List, timeout: int = 10) -> None:
     """Runs a Popen process with a given timeout. Kills the process and raises
     TimeoutExpired if the process does not finish within timeout in seconds. If
     there are messages in stderr, these are collected and a ProcessError is
