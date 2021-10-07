@@ -126,7 +126,7 @@ async def generate_sam_access_files(
             print(f"Filepath refers to a directory: {filepath}", flush=True)
             continue
 
-        # ensure access-folder for this files access-copies
+        # ensure access-folder for the access-copies of this files
         Path(ACCESS_PATH / file_id).mkdir(exist_ok=True)
 
         # Common access_files for all formats
@@ -147,7 +147,6 @@ async def generate_sam_access_files(
             shutil.copy2(filepath, ACCESS_PATH / file_id / f"{file_id}_c.pdf")
 
             # generate png-file from first page in pdf-file
-            TEMP_PATH.mkdir(exist_ok=True)
             try:
                 filepath = pdf_frontpage_to_image(filepath, TEMP_PATH)
             except PDFConvertError as e:

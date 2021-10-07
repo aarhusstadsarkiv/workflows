@@ -1,29 +1,56 @@
 from pathlib import Path
 from os import environ as env
-
+from typing import List, Dict
 from helpers import subprocess
 
 CMD_PATH = Path.home() / env["APP_DIR"] / "bin" / "ffmpeg.exe"
 
 
-def thumbnail(
-    in_file: Path, out_file: Path, size: int = 150, offset: int = 8
-) -> None:
+def thumbnails(
+    in_file: Path,
+    out_dir: Path,
+    thumbnails: List[Dict] = [
+        {"size": 150, "suffix": "_s"},
+        {"size": 640, "suffix": "_m"},
+    ],
+    watermark: bool = True,
+    overwrite: bool = True,
+    extension: str = ".jpg",
+    offset: int = 8,
+) -> List[Path]:
 
-    cmd = [
-        CMD_PATH,
-        "-ss",
-        f"00:00:{offset:02}",
-        "-i",
-        in_file,
-        "-vframes",
-        "1",
-        "-filter:v",
-        f"scale='{size}:-1'",
-        out_file,
-    ]
+    # validate
+    if not in_file.is_file():
+        raise FileNotFoundError(f"Input-path not a pdf-file: {in_file}")
 
-    subprocess.run_command(cmd)
+    if in_file.suffix not in env["SAM_VIDEO_FORMATS"]:
+        raise VideoConvertError(f"Unsupported fileformat: {in_file}")
+
+    # setup
+    if not out_dir.exists():
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+    response: List[Path] = []
+    for thumb in thumbnails:
+        out_file: Path = (
+            our_dir / in_file.stem + thumb.get("suffix") + extension
+        )
+        cmd = [
+            CMD_PATH,
+            "-ss",
+            f"00:00:{offset:02}",
+            "-i",
+            in_file,
+            "-vframes",
+            "1",
+            "-filter:v",
+            f"scale='{thumb.get('size')}:-1'",
+            out_file,
+        ]
+        subprocess.run_command(cmd)
+        resonse.apppend(out_file)
+
+    return response
 
 
 def convert(
