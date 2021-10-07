@@ -1,12 +1,11 @@
 from os import environ as env
 from pathlib import Path
-from typing import Any, List, Dict, Optional
+from typing import List, Dict
 
-import numpy as np
 import fitz
 from PIL import Image
 
-from source.helpers.watermark import add_watermark
+from src.helpers.watermark import add_watermark
 
 
 class PDFConvertError(Exception):
@@ -47,7 +46,7 @@ def thumbnails(
     for thumb in thumbnails:
         # tests
         out_file: Path = (
-            out_dir / in_file.stem + thumb.get("suffix") + extension
+            out_dir / f"{in_file.stem}{thumb.get('suffix')}{extension}"
         )
         if out_file.exists() and not overwrite:
             raise FileExistsError(f"File already exists: {out_file}")

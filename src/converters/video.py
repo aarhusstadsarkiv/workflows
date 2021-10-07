@@ -1,9 +1,14 @@
 from pathlib import Path
 from os import environ as env
 from typing import List, Dict
+
 from helpers import subprocess
 
 CMD_PATH = Path.home() / env["APP_DIR"] / "bin" / "ffmpeg.exe"
+
+
+class VideoConvertError(Exception):
+    """Implements error to raise when video conversion fails."""
 
 
 def thumbnails(
@@ -33,8 +38,12 @@ def thumbnails(
     response: List[Path] = []
     for thumb in thumbnails:
         out_file: Path = (
-            our_dir / in_file.stem + thumb.get("suffix") + extension
+            out_dir / f"{in_file.stem}{thumb.get('suffix')}{extension}"
         )
+
+        if out_file.exists() and not overwrite:
+            raise FileExistsError(f"File already exists: {out_file}")
+
         cmd = [
             CMD_PATH,
             "-ss",
@@ -48,7 +57,8 @@ def thumbnails(
             out_file,
         ]
         subprocess.run_command(cmd)
-        resonse.apppend(out_file)
+
+        response.append(out_file)
 
     return response
 

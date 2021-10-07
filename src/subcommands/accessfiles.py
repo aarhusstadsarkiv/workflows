@@ -4,11 +4,11 @@ from os import environ as env
 from typing import List, Dict
 from pathlib import Path
 
-from source.acastorage.exceptions import UploadError
+from src.acastorage.exceptions import UploadError
 
-from source.helpers.convert import PDFConvertError
+from src.helpers.convert import PDFConvertError
 
-from source.helpers import (
+from src.helpers import (
     load_csv_from_sam,
     save_csv_to_sam,
     upload_files,
@@ -75,9 +75,8 @@ async def generate_sam_access_files(
 
     # Ensure existence of access and temp folder
     ACCESS_PATH.mkdir(parents=True, exist_ok=True)
-    TEMP_PATH = Path(Path.home(), env["APP_DIR"], "temp").mkdir(
-        parents=True, exist_ok=True
-    )
+    TEMP_PATH: Path = Path.home() / env["APP_DIR"] / "temp"
+    TEMP_PATH.mkdir(parents=True, exist_ok=True)
 
     ACCESS_LARGE_SIZE = int(env["SAM_ACCESS_LARGE_SIZE"])
     ACCESS_MEDIUM_SIZE = int(env["SAM_ACCESS_MEDIUM_SIZE"])
