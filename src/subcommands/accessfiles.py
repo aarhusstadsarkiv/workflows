@@ -6,7 +6,7 @@ from pathlib import Path
 
 from src.acastorage.exceptions import UploadError
 
-from src.helpers.convert import PDFConvertError
+# from src.helpers.convert import PDFConvertError
 
 from src.helpers import (
     load_csv_from_sam,
@@ -15,6 +15,7 @@ from src.helpers import (
     pdf_frontpage_to_image,
     generate_jpgs,
     ImageConvertError,
+    PDFConvertError,
 )
 
 # -----------------------------------------------------------------------------
