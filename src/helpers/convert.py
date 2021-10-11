@@ -21,6 +21,10 @@ class ImageConvertError(Exception):
     """Implements error to raise when image-conversion fails."""
 
 
+class VideoConvertError(Exception):
+    """Implements error to raise when video-conversion fails."""
+
+
 # -----------------------------------------------------------------------------
 # Functions
 # -----------------------------------------------------------------------------

@@ -5,8 +5,8 @@ from pathlib import Path
 
 from gooey import Gooey, GooeyParser
 
-from sam_workflows.subcommands import generate_sam_access_files
-from sam_workflows.helpers import load_config
+from src.subcommands import generate_sam_access_files
+from src.helpers import load_config
 
 # -----------------------------------------------------------------------------
 # Setup
@@ -77,14 +77,14 @@ async def main() -> None:
     sam_access.add_argument(
         "-p",
         "--plain",
-        metavar="Vandmærker",
+        metavar="Uden vandmærker",
         action="store_true",
         help="Undlad at påføre vandmærker",
     )
     sam_access.add_argument(
         "-l",
         "--local",
-        metavar="Upload",
+        metavar="Upload ikke kopier af filerne",
         action="store_true",
         help="Undlad at uploade filerne til vores online server",
     )
@@ -113,7 +113,7 @@ async def main() -> None:
                 Path(args.sam_access_input_csv),
                 Path(args.sam_access_output_csv),
                 no_watermark=args.plain,
-                no_upload=args.local,
+                local=args.local,
                 overwrite=args.overwrite,
                 dryrun=args.dryrun,
             )

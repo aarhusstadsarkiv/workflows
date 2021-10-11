@@ -4,17 +4,18 @@ from os import environ as env
 from typing import List, Dict
 from pathlib import Path
 
-from sam_workflows.acastorage.exceptions import UploadError
+from src.acastorage.exceptions import UploadError
 
-from sam_workflows.helpers.convert import PDFConvertError
+# from src.helpers.convert import PDFConvertError
 
-from ..helpers import (
+from src.helpers import (
     load_csv_from_sam,
     save_csv_to_sam,
     upload_files,
     pdf_frontpage_to_image,
     generate_jpgs,
     ImageConvertError,
+    PDFConvertError,
 )
 
 # -----------------------------------------------------------------------------
@@ -26,7 +27,7 @@ async def generate_sam_access_files(
     csv_in: Path,
     csv_out: Path,
     no_watermark: bool = False,
-    no_upload: bool = False,
+    local: bool = False,
     overwrite: bool = False,
     dryrun: bool = False,
 ) -> None:
@@ -41,34 +42,23 @@ async def generate_sam_access_files(
         Csv-file to re-import into SAM
     no_watermark: bool
         Do not add watermarks to access-files. Defaults to False
-    no_upload: bool
+    local: bool
         Do not upload the generated access-files to Azure. Defaults to False
     overwrite: bool
         Overwrite existing files in both local storage and Azure. Defaults to
         False
-
-    Raises
-    ------
-    PDFConvertError
-        Raised when errors in conversion occur. Errors from PIL are caught
-        and re-raised with this error. If no pdf-files are loaded, this error
-        is raised as well.
-    ImageConvertError
-        Raised when errors in conversion occur. Errors from PIL are caught
-        and re-raised with this error. If no pdf-files are loaded, this error
-        is raised as well.
     """
 
-    # Load envvars
+    ################
+    # Load envvars #
+    ################
     if dryrun:
-        ACCESS_PATH = Path.home() / "Downloads" / "sam_workflow_accessfiles"
-        MASTER_PATH = (
-            Path(__file__).parent.parent.parent.resolve()
-            / "tests"
-            / "testfiles"
-        )
+        ACCESS_PATH = Path.home() / "Downloads" / "workflow_accessfiles"
+        MASTER_PATH = Path.home() / "Downloads" / "workflow_masterfiles"
+
+    # If run from an administrative PC
+    # OneDrive-folder with access-files, M-drive-folder with master-files
     elif env.get("OneDrive"):
-        # OneDrive-folder with access-files
         ACCESS_PATH = (
             Path.home()
             / "Aarhus kommune"
@@ -76,37 +66,37 @@ async def generate_sam_access_files(
             / "_DIGITALT_ARKIV"
             / env["SAM_ACCESS_DIR"]
         )
-
-        # Current master-path on the M-drive
         MASTER_PATH = Path(env["M_DRIVE_MASTER_PATH"])
-    else:
-        ACCESS_PATH = Path.home() / "Downloads" / "sam_access_accessfiles"
-        MASTER_PATH = (
-            Path(__file__).parent.parent.parent.resolve()
-            / "tests"
-            / "testfiles"
-        )
 
-    TEMP_PATH = Path.home() / env["APP_DIR"] / "temp"  # Used for pdf-files
+    else:
+        raise Exception("You are not using an administrative PC or a dryrun")
+
+    if not MASTER_PATH.exists():
+        raise Exception("Path to Masterfiles does not exist.")
+
+    # Ensure existence of access and temp folder
+    ACCESS_PATH.mkdir(parents=True, exist_ok=True)
+    TEMP_PATH: Path = Path.home() / env["APP_DIR"] / "temp"
+    TEMP_PATH.mkdir(parents=True, exist_ok=True)
+
     ACCESS_LARGE_SIZE = int(env["SAM_ACCESS_LARGE_SIZE"])
     ACCESS_MEDIUM_SIZE = int(env["SAM_ACCESS_MEDIUM_SIZE"])
     ACCESS_SMALL_SIZE = int(env["SAM_ACCESS_SMALL_SIZE"])
     IMAGE_FORMATS = env["SAM_IMAGE_FORMATS"].split(" ")
+    VIDEO_FORMATS = env["SAM_VIDEO_FORMATS"].split(" ")
     ACASTORAGE_URL = "/".join(
         [env["ACASTORAGE_ROOT"], env["ACASTORAGE_CONTAINER"]]
     )
 
-    # Load csv-file from SAM
+    ##########################
+    # Load csv-file from SAM #
+    ##########################
     files: List[Dict] = load_csv_from_sam(csv_in)
     files_count: int = len(files)
     print(f"Csv-file loaded. {files_count} files to process.", flush=True)
 
-    output: List[Dict] = []
-
-    # Ensure existence of access-folder
-    ACCESS_PATH.mkdir(parents=True, exist_ok=True)
-
     # Generate access-files
+    output: List[Dict] = []
     for idx, row in enumerate(files, start=1):
         # Load SAM-metadata
         file_id: str = row["uniqueID"]
@@ -114,7 +104,7 @@ async def generate_sam_access_files(
         legal_status: str = data.get("other_restrictions", "4")
         constractual_status: str = data.get("contractual_status", "1")
         filename: str = data["filename"]
-        print(f"Processing {filename} ({idx} of {files_count})", flush=True)
+        print(f"Processing {idx} of {files_count}: {filename}", flush=True)
 
         # Check rights
         if int(legal_status.split(";")[0]) > 1:
@@ -127,7 +117,7 @@ async def generate_sam_access_files(
             )
             continue
 
-        # filepath
+        # validate filepath
         filepath = MASTER_PATH / filename
         if not filepath.exists():
             print(f"No file found at: {filepath}", flush=True)
@@ -136,7 +126,7 @@ async def generate_sam_access_files(
             print(f"Filepath refers to a directory: {filepath}", flush=True)
             continue
 
-        # ensure access-folder for this files access-copies
+        # ensure access-folder for the access-copies of this files
         Path(ACCESS_PATH / file_id).mkdir(exist_ok=True)
 
         # Common access_files for all formats
@@ -157,7 +147,6 @@ async def generate_sam_access_files(
             shutil.copy2(filepath, ACCESS_PATH / file_id / f"{file_id}_c.pdf")
 
             # generate png-file from first page in pdf-file
-            TEMP_PATH.mkdir(exist_ok=True)
             try:
                 filepath = pdf_frontpage_to_image(filepath, TEMP_PATH)
             except PDFConvertError as e:
@@ -167,6 +156,16 @@ async def generate_sam_access_files(
         # elif image-file
         elif filepath.suffix in IMAGE_FORMATS:
             record_type = "image"
+            output_files.append(
+                {
+                    "size": ACCESS_LARGE_SIZE,
+                    "filename": f"{file_id}_l.jpg",
+                }
+            )
+
+        # elif video-file
+        elif filepath.suffix in VIDEO_FORMATS:
+            record_type = "video"
             output_files.append(
                 {
                     "size": ACCESS_LARGE_SIZE,
@@ -208,7 +207,7 @@ async def generate_sam_access_files(
                 filedata["large_image"] = str(jpgs[ACCESS_LARGE_SIZE])
 
             # Upload access-files
-            if not no_upload:
+            if not local:
                 filepaths: List[Dict[str, Path]] = []
                 for path in jpgs.values():
                     filepaths.append(
@@ -274,6 +273,9 @@ async def generate_sam_access_files(
 
             output.append(filedata)
 
+    ########################
+    # save to SAM csv-file #
+    ########################
     if output:
         save_csv_to_sam(output, csv_out)
         print("Finished proccessing files", flush=True)
@@ -283,5 +285,6 @@ async def generate_sam_access_files(
     else:
         print("No new accessfiles have been generated", flush=True)
 
+    # Remove temp-folder
     if TEMP_PATH.exists():
         shutil.rmtree(TEMP_PATH)

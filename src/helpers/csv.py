@@ -3,9 +3,6 @@ from typing import List, Dict
 from pathlib import Path
 
 
-__version__ = "0.1.0"
-
-
 class WrongFileExtensionError(Exception):
     """Raised when Path is not pointing to a csv-file"""
 
