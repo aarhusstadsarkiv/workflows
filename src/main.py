@@ -84,7 +84,7 @@ async def main() -> None:
     sam_access.add_argument(
         "-l",
         "--local",
-        metavar="Upload ikke kopier af filerne",
+        metavar="Undlad at uploade kopier af filerne",
         action="store_true",
         help="Undlad at uploade filerne til vores online server",
     )

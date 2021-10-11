@@ -5,6 +5,9 @@ from typing import List, Dict
 from pathlib import Path
 
 from src.acastorage.exceptions import UploadError
+import src.converters.pdf as pdf_conv
+import src.converters.video as video_conv
+import src.converters.image as image_conv
 
 # from src.helpers.convert import PDFConvertError
 
@@ -12,10 +15,6 @@ from src.helpers import (
     load_csv_from_sam,
     save_csv_to_sam,
     upload_files,
-    pdf_frontpage_to_image,
-    generate_jpgs,
-    ImageConvertError,
-    PDFConvertError,
 )
 
 # -----------------------------------------------------------------------------
@@ -98,12 +97,15 @@ async def generate_sam_access_files(
     # Generate access-files
     output: List[Dict] = []
     for idx, row in enumerate(files, start=1):
-        # Load SAM-metadata
+        # vars
         file_id: str = row["uniqueID"]
         data = json.loads(row["oasDataJsonEncoded"])
         legal_status: str = data.get("other_restrictions", "4")
         constractual_status: str = data.get("contractual_status", "1")
         filename: str = data["filename"]
+        out_dir = ACCESS_PATH / file_id
+        Path(ACCESS_PATH / file_id).mkdir(exist_ok=True)
+
         print(f"Processing {idx} of {files_count}: {filename}", flush=True)
 
         # Check rights
@@ -126,107 +128,41 @@ async def generate_sam_access_files(
             print(f"Filepath refers to a directory: {filepath}", flush=True)
             continue
 
-        # ensure access-folder for the access-copies of this files
-        Path(ACCESS_PATH / file_id).mkdir(exist_ok=True)
-
-        # Common access_files for all formats
-        output_files = [
-            {
-                "size": ACCESS_SMALL_SIZE,
-                "filename": f"{file_id}_s.jpg",
-            },
-            {
-                "size": ACCESS_MEDIUM_SIZE,
-                "filename": f"{file_id}_m.jpg",
-            },
-        ]
-        # If pdf-file
         if filepath.suffix == ".pdf":
-            record_type = "web_document"
-            # copy pdf to relevant sub-access-dir
-            shutil.copy2(filepath, ACCESS_PATH / file_id / f"{file_id}_c.pdf")
-
-            # generate png-file from first page in pdf-file
             try:
-                filepath = pdf_frontpage_to_image(filepath, TEMP_PATH)
-            except PDFConvertError as e:
-                print(f"Error converting pdf: {e}", flush=True)
+                # copy master-pdf to relevant sub-access-dir
+                shutil.copy2(filepath, out_dir / f"{file_id}_c.pdf")
+                # thumbnails
+                ts = pdf_conv.thumbnails(
+                    filepath,
+                    out_dir,
+                    watermark=no_watermark,
+                    overwrite=overwrite,
+                )
+            except pdf_conv.PDFConvertError as e:
+                print(f"PDFConvertError converting pdf: {e}", flush=True)
                 continue
-
-        # elif image-file
-        elif filepath.suffix in IMAGE_FORMATS:
-            record_type = "image"
-            output_files.append(
-                {
-                    "size": ACCESS_LARGE_SIZE,
-                    "filename": f"{file_id}_l.jpg",
-                }
-            )
-
-        # elif video-file
-        elif filepath.suffix in VIDEO_FORMATS:
-            record_type = "video"
-            output_files.append(
-                {
-                    "size": ACCESS_LARGE_SIZE,
-                    "filename": f"{file_id}_l.jpg",
-                }
-            )
-
-        else:
-            print(f"Unable to handle fileformat: {filename}", flush=True)
-            continue
-
-        # Generate access-files
-        try:
-            jpgs = generate_jpgs(
-                filepath,
-                out_folder=ACCESS_PATH / file_id,
-                out_files=output_files,
-                no_watermark=no_watermark,
-                overwrite=overwrite,
-            )
-        except FileNotFoundError as e:
-            print(f"Failed conversion. File not found: {e}", flush=True)
-        except FileExistsError as e:
-            print(f"Skipping conversion. File already exists: {e}", flush=True)
-        except ImageConvertError as e:
-            print(f"Failed to generate jpgs from {filename}: {e}", flush=True)
-        else:
-            print(f"Successfully converted {filename}", flush=True)
+            except Exception as e:
+                print(f"Exception raised when converting pdf: {e}", flush=True)
+                continue
 
             filedata = {
                 "oasid": file_id,
-                "record_type": record_type,
+                "record_type": "web_document",
+                "thumbnail": ts[0],
+                "record_image": ts[1],
+                "web_document_url": out_dir / f"{file_id}_c.pdf",
             }
-            if jpgs.get(ACCESS_SMALL_SIZE):
-                filedata["thumbnail"] = str(jpgs[ACCESS_SMALL_SIZE])
-            if jpgs.get(ACCESS_MEDIUM_SIZE):
-                filedata["record_image"] = str(jpgs[ACCESS_MEDIUM_SIZE])
-            if jpgs.get(ACCESS_LARGE_SIZE):
-                filedata["large_image"] = str(jpgs[ACCESS_LARGE_SIZE])
 
-            # Upload access-files
             if not local:
-                filepaths: List[Dict[str, Path]] = []
-                for path in jpgs.values():
-                    filepaths.append(
-                        {
-                            "filepath": path,
-                            "dest_dir": Path(file_id),
-                        }
-                    )
-                if record_type == "web_document":
-                    filepaths.append(
-                        {
-                            "filepath": ACCESS_PATH
-                            / file_id
-                            / f"{file_id}_c.pdf",
-                            "dest_dir": Path(file_id),
-                        }
-                    )
+                dest_dir = ACASTORAGE_URL / file_id
+                paths: List[Dict] = [
+                    {"filepath": v, "dest_dir": dest_dir}
+                    for k, v in filedata
+                    if k in ("thumbnail", "record_image", "web_document_url")
+                ]
                 try:
-                    await upload_files(filepaths, overwrite=overwrite)
+                    await upload_files(paths, overwrite=overwrite)
                 except UploadError as e:
                     if not overwrite and "BlobAlreadyExists" in str(e):
                         print(
@@ -235,41 +171,141 @@ async def generate_sam_access_files(
                         )
                     else:
                         print(f"Failed to upload {filename}: {e}", flush=True)
-                else:
-                    print(f"Uploaded files for {filename}", flush=True)
+                except Exception as e:
+                    print(f"Failed to upload {filename}: {e}", flush=True)
 
-                    if record_type == "web_document":
-                        filedata["web_document_url"] = "/".join(
-                            [
-                                ACASTORAGE_URL,
-                                file_id,
-                                f"{file_id}_c.pdf",
-                            ]
-                        )
-                    if jpgs.get(ACCESS_SMALL_SIZE):
-                        filedata["thumbnail"] = "/".join(
-                            [
-                                ACASTORAGE_URL,
-                                file_id,
-                                jpgs[ACCESS_SMALL_SIZE].name,
-                            ]
-                        )
-                    if jpgs.get(ACCESS_MEDIUM_SIZE):
-                        filedata["record_image"] = "/".join(
-                            [
-                                ACASTORAGE_URL,
-                                file_id,
-                                jpgs[ACCESS_MEDIUM_SIZE].name,
-                            ]
-                        )
-                    if jpgs.get(ACCESS_LARGE_SIZE):
-                        filedata["large_image"] = "/".join(
-                            [
-                                ACASTORAGE_URL,
-                                file_id,
-                                jpgs[ACCESS_LARGE_SIZE].name,
-                            ]
-                        )
+
+                print(f"Uploaded files for {filename}", flush=True)
+                filedata.update({
+                    "thumbnail": ts[0],
+                    "record_image": ts[1],
+                    "web_document_url": out_dir / f"{file_id}_c.pdf",
+                })
+
+        elif filepath.suffix in VIDEO_FORMATS:
+
+            try:
+                record_file = out_dir / f"{file_id}.mp4"
+                video_conv.convert(filepath, record_file)
+                thumbnails = video_conv.thumbnails(
+                    filepath,
+                    out_dir,
+                    watermark=no_watermark,
+                    overwrite=overwrite,
+                )
+            except video_conv.VideoConvertError as e:
+                print(f"VideoConvertError converting video: {e}", flush=True)
+                continue
+            except Exception as e:
+                print(
+                    f"Exception raised when converting video: {e}", flush=True
+                )
+                continue
+
+            filedata = {
+                "oasid": file_id,
+                "record_type": "video",
+                "thumbnail": thumbnails[0],
+                "record_image": thumbnails[1],
+                "record_file": record_file,
+            }
+
+        elif filepath.suffix in IMAGE_FORMATS:
+            try:
+                ts = image_conv.thumbnails(
+                    filepath,
+                    out_dir,
+                    thumbnails=[
+                        {"size": 150, "suffix": "_s"},
+                        {"size": 640, "suffix": "_m"},
+                        {"size": 1920, "suffix": "_l"},
+                    ],
+                    watermark=no_watermark,
+                    overwrite=overwrite,
+                )
+            except image_conv.ImageConvertError as e:
+                print(f"ImageConvertError converting image: {e}", flush=True)
+                continue
+            except Exception as e:
+                print(
+                    f"Exception raised when converting image: {e}", flush=True
+                )
+                continue
+
+            filedata = {
+                "oasid": file_id,
+                "record_type": "image",
+                "thumbnail": ts[0],
+                "record_image": ts[1],
+                "large_image": ts[2],
+            }
+
+        else:
+            print(f"Unable to handle fileformat: {filename}", flush=True)
+            continue
+
+    # Upload access-files
+    if not local:
+        filepaths: List[Dict[str, Path]] = []
+        for path in jpgs.values():
+            filepaths.append(
+                {
+                    "filepath": path,
+                    "dest_dir": Path(file_id),
+                }
+            )
+        if record_type == "web_document":
+            filepaths.append(
+                {
+                    "filepath": ACCESS_PATH / file_id / f"{file_id}_c.pdf",
+                    "dest_dir": Path(file_id),
+                }
+            )
+        try:
+            await upload_files(filepaths, overwrite=overwrite)
+        except UploadError as e:
+            if not overwrite and "BlobAlreadyExists" in str(e):
+                print(
+                    f"Skipping upload.{filename} already exists.",
+                    flush=True,
+                )
+            else:
+                print(f"Failed to upload {filename}: {e}", flush=True)
+        else:
+            print(f"Uploaded files for {filename}", flush=True)
+
+            if record_type == "web_document":
+                filedata["web_document_url"] = "/".join(
+                    [
+                        ACASTORAGE_URL,
+                        file_id,
+                        f"{file_id}_c.pdf",
+                    ]
+                )
+            if jpgs.get(ACCESS_SMALL_SIZE):
+                filedata["thumbnail"] = "/".join(
+                    [
+                        ACASTORAGE_URL,
+                        file_id,
+                        jpgs[ACCESS_SMALL_SIZE].name,
+                    ]
+                )
+            if jpgs.get(ACCESS_MEDIUM_SIZE):
+                filedata["record_image"] = "/".join(
+                    [
+                        ACASTORAGE_URL,
+                        file_id,
+                        jpgs[ACCESS_MEDIUM_SIZE].name,
+                    ]
+                )
+            if jpgs.get(ACCESS_LARGE_SIZE):
+                filedata["large_image"] = "/".join(
+                    [
+                        ACASTORAGE_URL,
+                        file_id,
+                        jpgs[ACCESS_LARGE_SIZE].name,
+                    ]
+                )
 
             output.append(filedata)
 
