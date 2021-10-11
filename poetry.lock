@@ -85,7 +85,7 @@ six = ">=1.11.0"
 
 [[package]]
 name = "azure-identity"
-version = "1.6.0"
+version = "1.6.1"
 description = "Microsoft Azure Identity Library for Python"
 category = "main"
 optional = false
@@ -554,18 +554,18 @@ python-versions = "*"
 
 [[package]]
 name = "pyjwt"
-version = "2.1.0"
+version = "2.2.0"
 description = "JSON Web Token implementation in Python"
 category = "main"
 optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
-cryptography = {version = ">=3.3.1,<4.0.0", optional = true, markers = "extra == \"crypto\""}
+cryptography = {version = ">=3.3.1", optional = true, markers = "extra == \"crypto\""}
 
 [package.extras]
-crypto = ["cryptography (>=3.3.1,<4.0.0)"]
-dev = ["sphinx", "sphinx-rtd-theme", "zope.interface", "cryptography (>=3.3.1,<4.0.0)", "pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)", "mypy", "pre-commit"]
+crypto = ["cryptography (>=3.3.1)"]
+dev = ["sphinx", "sphinx-rtd-theme", "zope.interface", "cryptography (>=3.3.1)", "pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)", "mypy", "pre-commit"]
 docs = ["sphinx", "sphinx-rtd-theme", "zope.interface"]
 tests = ["pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)"]
 
@@ -752,7 +752,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8"
-content-hash = "8ea22af0a343bd5d30edaac68d06f0b6e4a825464fc0fd89fcec1c387ec814f3"
+content-hash = "3543adeed785e7c1e678d4468fe055c47b5f4942d8ace238eaaeb8c1b36c3440"
 
 [metadata.files]
 aiohttp = [
@@ -823,8 +823,8 @@ azure-core = [
     {file = "azure_core-1.16.0-py2.py3-none-any.whl", hash = "sha256:83ef981ca4ad167c1df7b1ec5c4bda74999fcd21cacc048e83cf8ce51c61d5c2"},
 ]
 azure-identity = [
-    {file = "azure-identity-1.6.0.zip", hash = "sha256:2e70b00874e4f288e37804bc06bfaf216de8565c759594bf79cccfbf9ca2c78a"},
-    {file = "azure_identity-1.6.0-py2.py3-none-any.whl", hash = "sha256:87f63bf1f3f10b67a3e6689f06d0cf6cacdcd8e375c6da12ea71c111cfe58457"},
+    {file = "azure-identity-1.6.1.zip", hash = "sha256:69035c81f280fac5fa9c55f87be3a359b264853727486e3568818bb43988080e"},
+    {file = "azure_identity-1.6.1-py2.py3-none-any.whl", hash = "sha256:6f4f8c1ba2887cf3e1663be324fde278fce52d781123ad95c07d2c9d9cdeef5a"},
 ]
 azure-keyvault-secrets = [
     {file = "azure-keyvault-secrets-4.3.0.zip", hash = "sha256:26279ba3a6c727deba1fb61f549496867baddffbf062bd579d6fd2bc04e95276"},
@@ -1234,8 +1234,8 @@ pyinstaller-hooks-contrib = [
     {file = "pyinstaller_hooks_contrib-2021.2-py2.py3-none-any.whl", hash = "sha256:57964f93eb69255c49159ffdf052aae893feed223b0f69773dfd010ca6c569d9"},
 ]
 pyjwt = [
-    {file = "PyJWT-2.1.0-py3-none-any.whl", hash = "sha256:934d73fbba91b0483d3857d1aff50e96b2a892384ee2c17417ed3203f173fca1"},
-    {file = "PyJWT-2.1.0.tar.gz", hash = "sha256:fba44e7898bbca160a2b2b501f492824fc8382485d3a6f11ba5d0c1937ce6130"},
+    {file = "PyJWT-2.2.0-py3-none-any.whl", hash = "sha256:b0ed5824c8ecc5362e540c65dc6247567db130c4226670bf7699aec92fb4dae1"},
+    {file = "PyJWT-2.2.0.tar.gz", hash = "sha256:a0b9a3b4e5ca5517cac9f1a6e9cd30bf1aa80be74fcdf4e28eded582ecfcfbae"},
 ]
 pymupdf = [
     {file = "PyMuPDF-1.18.14-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:f095aff92cb3e130a4e4dec043535646895434a048e8baaff684df7d9129d098"},
