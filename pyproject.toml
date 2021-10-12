@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "src"
+name = "Workflows"
 version = "0.5.0"
 description = "Workflows for SAM used at Aarhus City Archives"
 authors = ["Claus Juhl Knudsen <cjk@aarhus.dk>", "Nina Jensen <jnik@aarhus.dk>"]
