@@ -5,8 +5,8 @@ from pathlib import Path
 
 from gooey import Gooey, GooeyParser
 
-from src.subcommands import generate_sam_access_files
-from src.helpers import load_config
+from subcommands import generate_sam_access_files
+from helpers import load_config
 
 # -----------------------------------------------------------------------------
 # Setup

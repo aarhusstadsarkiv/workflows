@@ -1,25 +1,17 @@
 import json
 import shutil
 from os import environ as env
-from typing import List, Dict
+from typing import List, Dict, Union
 from pathlib import Path
 
-from src.acastorage.exceptions import UploadError
-import src.converters.pdf as pdf_conv
-import src.converters.video as video_conv
-import src.converters.image as image_conv
+from src.acastorage import UploadError
+from src.converters import pdf_conv, video_conv, image_conv
 
-# from src.helpers.convert import PDFConvertError
-
-from src.helpers import (
+from ..helpers import (
     load_csv_from_sam,
     save_csv_to_sam,
     upload_files,
 )
-
-# -----------------------------------------------------------------------------
-# Functions
-# -----------------------------------------------------------------------------
 
 
 async def generate_sam_access_files(
@@ -68,7 +60,9 @@ async def generate_sam_access_files(
         MASTER_PATH = Path(env["M_DRIVE_MASTER_PATH"])
 
     else:
-        raise Exception("You are not using an administrative PC or a dryrun")
+        raise Exception(
+            "You are not using an adminPC. Only a dryrun is possible."
+        )
 
     if not MASTER_PATH.exists():
         raise Exception("Path to Masterfiles does not exist.")
@@ -92,10 +86,10 @@ async def generate_sam_access_files(
     ##########################
     files: List[Dict] = load_csv_from_sam(csv_in)
     files_count: int = len(files)
+    output: List[Dict] = []
     print(f"Csv-file loaded. {files_count} files to process.", flush=True)
 
     # Generate access-files
-    output: List[Dict] = []
     for idx, row in enumerate(files, start=1):
         # vars
         file_id: str = row["uniqueID"]
@@ -104,6 +98,7 @@ async def generate_sam_access_files(
         constractual_status: str = data.get("contractual_status", "1")
         filename: str = data["filename"]
         out_dir = ACCESS_PATH / file_id
+        filedata: Dict[str, Union[str, Path]] = {"oasid": file_id}
         Path(ACCESS_PATH / file_id).mkdir(exist_ok=True)
 
         print(f"Processing {idx} of {files_count}: {filename}", flush=True)
@@ -128,12 +123,13 @@ async def generate_sam_access_files(
             print(f"Filepath refers to a directory: {filepath}", flush=True)
             continue
 
+        # convert according to file extension
         if filepath.suffix == ".pdf":
             try:
                 # copy master-pdf to relevant sub-access-dir
                 shutil.copy2(filepath, out_dir / f"{file_id}_c.pdf")
                 # thumbnails
-                ts = pdf_conv.thumbnails(
+                thumbnails = pdf_conv.thumbnails(
                     filepath,
                     out_dir,
                     watermark=no_watermark,
@@ -146,41 +142,14 @@ async def generate_sam_access_files(
                 print(f"Exception raised when converting pdf: {e}", flush=True)
                 continue
 
-            filedata = {
-                "oasid": file_id,
-                "record_type": "web_document",
-                "thumbnail": ts[0],
-                "record_image": ts[1],
-                "web_document_url": out_dir / f"{file_id}_c.pdf",
-            }
-
-            if not local:
-                dest_dir = ACASTORAGE_URL / file_id
-                paths: List[Dict] = [
-                    {"filepath": v, "dest_dir": dest_dir}
-                    for k, v in filedata
-                    if k in ("thumbnail", "record_image", "web_document_url")
-                ]
-                try:
-                    await upload_files(paths, overwrite=overwrite)
-                except UploadError as e:
-                    if not overwrite and "BlobAlreadyExists" in str(e):
-                        print(
-                            f"Skipping upload.{filename} already exists.",
-                            flush=True,
-                        )
-                    else:
-                        print(f"Failed to upload {filename}: {e}", flush=True)
-                except Exception as e:
-                    print(f"Failed to upload {filename}: {e}", flush=True)
-
-
-                print(f"Uploaded files for {filename}", flush=True)
-                filedata.update({
-                    "thumbnail": ts[0],
-                    "record_image": ts[1],
+            filedata.update(
+                {
+                    "record_type": "web_document",
+                    "thumbnail": thumbnails[0],
+                    "record_image": thumbnails[1],
                     "web_document_url": out_dir / f"{file_id}_c.pdf",
-                })
+                }
+            )
 
         elif filepath.suffix in VIDEO_FORMATS:
 
@@ -202,23 +171,24 @@ async def generate_sam_access_files(
                 )
                 continue
 
-            filedata = {
-                "oasid": file_id,
-                "record_type": "video",
-                "thumbnail": thumbnails[0],
-                "record_image": thumbnails[1],
-                "record_file": record_file,
-            }
+            filedata.update(
+                {
+                    "record_type": "video",
+                    "thumbnail": thumbnails[0],
+                    "record_image": thumbnails[1],
+                    "record_file": record_file,
+                }
+            )
 
         elif filepath.suffix in IMAGE_FORMATS:
             try:
-                ts = image_conv.thumbnails(
+                thumbnails = image_conv.thumbnails(
                     filepath,
                     out_dir,
                     thumbnails=[
-                        {"size": 150, "suffix": "_s"},
-                        {"size": 640, "suffix": "_m"},
-                        {"size": 1920, "suffix": "_l"},
+                        {"size": ACCESS_SMALL_SIZE, "suffix": "_s"},
+                        {"size": ACCESS_MEDIUM_SIZE, "suffix": "_m"},
+                        {"size": ACCESS_LARGE_SIZE, "suffix": "_l"},
                     ],
                     watermark=no_watermark,
                     overwrite=overwrite,
@@ -232,37 +202,43 @@ async def generate_sam_access_files(
                 )
                 continue
 
-            filedata = {
-                "oasid": file_id,
-                "record_type": "image",
-                "thumbnail": ts[0],
-                "record_image": ts[1],
-                "large_image": ts[2],
-            }
+            filedata.update(
+                {
+                    "record_type": "image",
+                    "thumbnail": thumbnails[0],
+                    "record_image": thumbnails[1],
+                    "large_image": thumbnails[2],
+                }
+            )
 
         else:
             print(f"Unable to handle fileformat: {filename}", flush=True)
             continue
 
-    # Upload access-files
+    # Upload access-files if option chosen
     if not local:
-        filepaths: List[Dict[str, Path]] = []
-        for path in jpgs.values():
-            filepaths.append(
-                {
-                    "filepath": path,
-                    "dest_dir": Path(file_id),
-                }
-            )
-        if record_type == "web_document":
-            filepaths.append(
-                {
-                    "filepath": ACCESS_PATH / file_id / f"{file_id}_c.pdf",
-                    "dest_dir": Path(file_id),
-                }
-            )
+        # determine upload parameters
+        dest_dir = Path(ACASTORAGE_URL, file_id)
+        keys: List
+        if filedata["record_type"] == "web_document":
+            keys = ["thumbnail", "record_image", "web_document_url"]
+        elif filedata["record_type"] == "video":
+            keys = ["thumbnail", "record_image", "record_file"]
+        else:
+            keys = ["thumbnail", "record_image", "large_image"]
+
+        paths: List[Dict] = [
+            {"filepath": v, "dest_dir": dest_dir}
+            for k, v in filedata.items()
+            if k in keys
+        ]
         try:
-            await upload_files(filepaths, overwrite=overwrite)
+            await upload_files(paths, overwrite=overwrite)
+            # update filedata with online paths
+            # no urlencode necessary due to int-based filenames
+            for k in keys:
+                if type(filedata.get(k)) == "Path":
+                    filedata[k] = dest_dir / Path(filedata[k]).name
         except UploadError as e:
             if not overwrite and "BlobAlreadyExists" in str(e):
                 print(
@@ -271,43 +247,12 @@ async def generate_sam_access_files(
                 )
             else:
                 print(f"Failed to upload {filename}: {e}", flush=True)
-        else:
-            print(f"Uploaded files for {filename}", flush=True)
+        except Exception as e:
+            print(f"Failed to upload {filename}: {e}", flush=True)
 
-            if record_type == "web_document":
-                filedata["web_document_url"] = "/".join(
-                    [
-                        ACASTORAGE_URL,
-                        file_id,
-                        f"{file_id}_c.pdf",
-                    ]
-                )
-            if jpgs.get(ACCESS_SMALL_SIZE):
-                filedata["thumbnail"] = "/".join(
-                    [
-                        ACASTORAGE_URL,
-                        file_id,
-                        jpgs[ACCESS_SMALL_SIZE].name,
-                    ]
-                )
-            if jpgs.get(ACCESS_MEDIUM_SIZE):
-                filedata["record_image"] = "/".join(
-                    [
-                        ACASTORAGE_URL,
-                        file_id,
-                        jpgs[ACCESS_MEDIUM_SIZE].name,
-                    ]
-                )
-            if jpgs.get(ACCESS_LARGE_SIZE):
-                filedata["large_image"] = "/".join(
-                    [
-                        ACASTORAGE_URL,
-                        file_id,
-                        jpgs[ACCESS_LARGE_SIZE].name,
-                    ]
-                )
+        print(f"Uploaded files for {filename}", flush=True)
 
-            output.append(filedata)
+    output.append(filedata)
 
     ########################
     # save to SAM csv-file #
