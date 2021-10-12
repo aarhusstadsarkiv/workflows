@@ -4,10 +4,10 @@ from os import environ as env
 from typing import List, Dict, Union
 from pathlib import Path
 
-from src.acastorage import UploadError
-from src.converters import pdf_conv, video_conv, image_conv
+from source.acastorage import UploadError
+from source.converters import pdf_conv, video_conv, image_conv
 
-from ..helpers import (
+from source.helpers import (
     load_csv_from_sam,
     save_csv_to_sam,
     upload_files,

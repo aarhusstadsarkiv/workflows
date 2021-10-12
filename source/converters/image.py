@@ -5,7 +5,7 @@ from typing import Any, List, Dict, Optional
 import numpy as np
 from PIL import Image, ExifTags
 
-from helpers.watermark import add_watermark
+from source.helpers.watermark import add_watermark
 
 
 class ImageConvertError(Exception):

@@ -6,7 +6,7 @@ import numpy as np
 import fitz
 from PIL import Image, ExifTags
 
-from .watermark import add_watermark
+from source.helpers.watermark import add_watermark
 
 # -----------------------------------------------------------------------------
 # Classes

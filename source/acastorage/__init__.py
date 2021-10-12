@@ -7,4 +7,4 @@ from .exceptions import UploadError
 # -----------------------------------------------------------------------------
 # Public API
 # -----------------------------------------------------------------------------
-# __all__ = ["ACAStorage", "UploadError"]
+__all__ = ["ACAStorage", "UploadError"]

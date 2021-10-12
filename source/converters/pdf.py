@@ -5,7 +5,7 @@ from typing import List, Dict
 import fitz
 from PIL import Image
 
-from src.helpers.watermark import add_watermark
+from source.helpers.watermark import add_watermark
 
 
 class PDFConvertError(Exception):

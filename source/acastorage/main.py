@@ -6,7 +6,7 @@ from typing import Any
 
 from azure.storage.blob.aio import ContainerClient
 
-from acastorage.exceptions import UploadError
+from source.acastorage.exceptions import UploadError
 
 # -----------------------------------------------------------------------------
 # Main ACAStorage Class
