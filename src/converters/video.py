@@ -15,8 +15,8 @@ def thumbnails(
     in_file: Path,
     out_dir: Path,
     thumbnails: List[Dict] = [
-        {"size": 150, "suffix": "_s"},
-        {"size": 640, "suffix": "_m"},
+        {"size": int(env["SAM_ACCESS_SMALL_SIZE"]), "suffix": "_s"},
+        {"size": int(env["SAM_ACCESS_MEDIUM_SIZE"]), "suffix": "_m"},
     ],
     watermark: bool = True,
     overwrite: bool = True,

@@ -5,8 +5,8 @@ from pathlib import Path
 
 from gooey import Gooey, GooeyParser
 
-from src.subcommands import generate_sam_access_files
-from src.helpers import load_config
+from subcommands import generate_sam_access_files
+from helpers import load_config
 
 # -----------------------------------------------------------------------------
 # Setup
@@ -84,7 +84,7 @@ async def main() -> None:
     sam_access.add_argument(
         "-l",
         "--local",
-        metavar="Upload ikke kopier af filerne",
+        metavar="Undlad at uploade kopier af filerne",
         action="store_true",
         help="Undlad at uploade filerne til vores online server",
     )
