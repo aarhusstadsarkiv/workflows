@@ -7,6 +7,9 @@ maintainers = ["Aarhus Stadsarkiv <stadsarkiv@aarhus.dk>"]
 license = "GPL-3.0"
 readme = "README.md"
 homepage = "https://www.aarhusstadsarkiv.dk/"
+packages = [
+    { include = "source" }
+]
 
 [tool.poetry.dependencies]
 python = ">=3.8"
