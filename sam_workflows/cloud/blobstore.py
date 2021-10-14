@@ -1,16 +1,12 @@
-# -----------------------------------------------------------------------------
-# Imports
-# -----------------------------------------------------------------------------
+from os import environ as env
+from typing import List, Dict, Any
 from pathlib import Path
-from typing import Any
 
+from azure.identity.aio import EnvironmentCredential
+from azure.keyvault.secrets.aio import SecretClient
 from azure.storage.blob.aio import ContainerClient
 
-from acastorage.exceptions import UploadError
-
-# -----------------------------------------------------------------------------
-# Main ACAStorage Class
-# -----------------------------------------------------------------------------
+from .exceptions import UploadError
 
 
 class ACAStorage(ContainerClient):
@@ -66,3 +62,30 @@ class ACAStorage(ContainerClient):
                 raise UploadError(f"Upload of {source} failed: {err}")
             finally:
                 await blob_client.close()
+
+
+async def upload_files(
+    filelist: List[Dict[str, Path]],
+    overwrite: bool = False,
+) -> None:
+
+    credential = EnvironmentCredential()
+    try:
+        vault = SecretClient(
+            vault_url="https://aca-keys.vault.azure.net", credential=credential
+        )
+        secret = await vault.get_secret(env["AZURE_BLOBSTORE_VAULTKEY"])
+
+        container = env["ACASTORAGE_CONTAINER"]
+        conn = ACAStorage(container, credential=secret.value)
+
+        for f in filelist:
+            await conn.upload_file(
+                f["filepath"], f["dest_dir"], overwrite=overwrite
+            )
+
+    finally:
+        # Close transporters
+        await conn.close()
+        await vault.close()
+        await credential.close()

@@ -5,13 +5,13 @@ from pathlib import Path
 
 from gooey import Gooey, GooeyParser
 
-from sam_workflows.subcommands import generate_sam_access_files
-from sam_workflows.helpers import load_config
+from sam_workflows.commands import generate_sam_access_files
+from config import load_config
 
 # -----------------------------------------------------------------------------
 # Setup
 # -----------------------------------------------------------------------------
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 utf8_stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
 utf8_stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
@@ -113,7 +113,7 @@ async def main() -> None:
                 Path(args.sam_access_input_csv),
                 Path(args.sam_access_output_csv),
                 no_watermark=args.plain,
-                no_upload=args.local,
+                local=args.local,
                 overwrite=args.overwrite,
                 dryrun=args.dryrun,
             )

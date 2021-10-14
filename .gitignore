@@ -1,8 +1,5 @@
 config.json
 .vscode/
-import_to_sam.csv
-sam_workflows/data/files_to_upload/
-sam_workflows/images/temp/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -143,7 +140,3 @@ dmypy.json
 
 # Mac
 .DS_Store
-
-# SAM files
-files_to_upload/
-sam_import.csv

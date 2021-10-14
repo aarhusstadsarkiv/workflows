@@ -1,10 +1,13 @@
 import os
 import json
+import toml
 from typing import Dict
 from pathlib import Path
 
 APP_DIR = ".sam_workflows"
 CONFIG_FILE = "config.json"
+TOML_FILE = "config.toml"
+
 CONFIG_KEYS = [
     "azure_tenant_id",
     "azure_client_id",
@@ -23,7 +26,10 @@ CONFIG_KEYS = [
     "sam_watermark_white",
     "sam_watermark_black",
     "sam_image_formats",
+    "sam_video_formats",
 ]
+
+configuration = toml.load(Path.home() / APP_DIR / TOML_FILE)
 
 
 def load_config() -> None:
