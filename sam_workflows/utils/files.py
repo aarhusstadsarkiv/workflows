@@ -1,4 +1,6 @@
 import csv
+import json
+from functools import lru_cache
 from typing import List, Dict
 from pathlib import Path
 
@@ -9,6 +11,33 @@ class WrongFileExtensionError(Exception):
 
 class MalformedHeadersError(Exception):
     """Raised when Path is not pointing to a csv-file"""
+
+
+@lru_cache()
+def load_oas_backup(input: Path) -> List[Dict]:
+    if not input.is_file():
+        raise FileNotFoundError("No backup-file at: " + str(input))
+    if not input.suffix == ".csv":
+        raise WrongFileExtensionError(
+            "The backup-path is not pointing to a csv-file"
+        )
+
+    with open(input, encoding="utf8") as ifile:
+        backup = csv.DictReader(ifile)
+
+        if backup.fieldnames != ["id", "oasDictText", "timeStamp", "lastUser"]:
+            raise MalformedHeadersError(
+                "Loaded backup-file does not contain the right headers"
+            )
+
+        out: List[Dict] = []
+        for row in backup:
+            data = json.loads(row["oasDictText"])
+            # Skip all deleted records
+            if data.get("related_content").split(";")[0] == "4":
+                continue
+            out.append(data)
+        return out
 
 
 def load_csv_from_sam(input: Path) -> List[Dict]:

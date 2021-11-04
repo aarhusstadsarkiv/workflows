@@ -4,8 +4,8 @@ import toml
 from typing import Dict
 from pathlib import Path
 
-APP_DIR = ".sam_workflows"
-CONFIG_FILE = "config.json"
+CONFIG_DIR = Path.home() / ".sam_workflows"
+JSON_FILE = "config.json"
 TOML_FILE = "config.toml"
 
 CONFIG_KEYS = [
@@ -16,6 +16,7 @@ CONFIG_KEYS = [
     "acastorage_root",
     "acastorage_container",
     "m_drive_master_path",
+    "sam_backup_path",
     "sam_master_dir",
     "sam_access_dir",
     "sam_access_large_size",
@@ -29,13 +30,22 @@ CONFIG_KEYS = [
     "sam_video_formats",
 ]
 
-configuration = toml.load(Path.home() / APP_DIR / TOML_FILE)
+
+def load_toml_config() -> Dict:
+    """Returns config as dict"""
+    conf = CONFIG_DIR / TOML_FILE
+    if not conf.is_file():
+        raise FileNotFoundError("Konfigurationsfilen blev ikke fundet.")
+
+    config_dict = toml.load(conf)
+    config_dict["app_dir"] = ".sam_workflows"
+    return dict(config_dict)
 
 
-def load_config() -> None:
+def load_json_config() -> None:
     """Loads all CONFIG_KEYS from config.json into the environment"""
 
-    conf = Path.home() / APP_DIR / CONFIG_FILE
+    conf = CONFIG_DIR / JSON_FILE
     if not conf.is_file():
         raise FileNotFoundError("Konfigurationsfilen blev ikke fundet.")
 
@@ -50,4 +60,4 @@ def load_config() -> None:
             for k, v in config.items():
                 if k.lower() in CONFIG_KEYS:
                     os.environ[k.upper()] = str(v)
-            os.environ["APP_DIR"] = APP_DIR
+            os.environ["APP_DIR"] = ".sam_workflows"

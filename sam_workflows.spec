@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['main.py'],
+a = Analysis(['cli.py'],
              pathex=['C:\\Users\\azkb075\\github\\sam-workflows\\sam_workflows'],
              binaries=[],
              datas=[],

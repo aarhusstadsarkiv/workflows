@@ -36,16 +36,19 @@ def thumbnails(
     response: List[Path] = []
     for thumb in thumbnails:
         out_file: Path = (
-            out_dir / f"{in_file.stem}{thumb.get('suffix')}{extension}"
+            out_dir / f"{in_file.stem}{thumb['suffix']}{extension}"
         )
 
         if out_file.exists() and not overwrite:
             raise FileExistsError(f"File already exists: {out_file}")
 
+        size = thumb["size"]
+        # f"scale='{thumb.get('size')}:-1'",
+
         cmd = [
             CMD_PATH,
             "-loglevel",
-            "error",
+            "verbose",
             "-ss",
             f"00:00:{offset:02}",
             "-i",
@@ -53,11 +56,11 @@ def thumbnails(
             "-vframes",
             "1",
             "-filter:v",
-            f"scale='{thumb.get('size')}:-1'",
+            f"scale='{size}:-1'",
             out_file,
         ]
 
-        subprocess.run(cmd, timeout=20)
+        subprocess.run(cmd, timeout=30)
 
         response.append(out_file)
 
@@ -65,17 +68,21 @@ def thumbnails(
 
 
 def convert(
-    in_file: Path, out_file: Path, timeout: int = 120, quality: int = 30
+    in_file: Path, out_file: Path, timeout: int = 180, quality: int = 30
 ) -> None:
 
     cmd = [
         CMD_PATH,
         "-loglevel",
-        "error",
+        "verbose",
         "-i",
         in_file,
         "-crf",
         f"{quality}",
+        "-movflags",
+        "+faststart",
+        "-vf",
+        "\"scale=trunc(iw/2)*2:trunc(ih/2)*2\"",
         "-vcodec",
         "h264",
         "-acodec",
