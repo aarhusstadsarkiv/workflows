@@ -1,16 +1,13 @@
 import csv
-
-# from os import environ as env
 from typing import List, Dict
 from pathlib import Path
 
-# from sam_workflows.config import load_toml_config
 from sam_workflows.utils import load_oas_backup
 
 
-async def filter_on_storage_id(record: Dict, value: str) -> bool:
-    ids = record.get("storage_id", [])
-    if value in ids:
+async def filter_on_storage_id(record: Dict, value: List) -> bool:
+    ids = record["storage_id"]
+    if any(v for v in value if v in ids):
         return True
     return False
 
@@ -26,7 +23,7 @@ async def search_backup(
     for data in backup:
         for filter in filters:
             # Filer on storage_id
-            if filter.get("key") == "storage_id":
+            if filter["key"] == "storage_id" and data.get("storage_id"):
                 if await filter_on_storage_id(data, filter["value"]):
                     out.append(data.get("identifier"))
 

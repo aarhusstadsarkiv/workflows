@@ -38,7 +38,7 @@ def thumbnails(
     except Exception as e:
         raise ConvertError(f"Unable to open {in_file} as pdf-file: {e}")
 
-    pix = doc.loadPage(page).getPixmap()
+    pix = doc.load_page(page).get_pixmap()
     # create and save a PIL image
     img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 

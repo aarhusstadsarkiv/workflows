@@ -43,12 +43,11 @@ def thumbnails(
             raise FileExistsError(f"File already exists: {out_file}")
 
         size = thumb["size"]
-        # f"scale='{thumb.get('size')}:-1'",
 
         cmd = [
             CMD_PATH,
             "-loglevel",
-            "verbose",
+            "error",
             "-ss",
             f"00:00:{offset:02}",
             "-i",
@@ -56,7 +55,7 @@ def thumbnails(
             "-vframes",
             "1",
             "-filter:v",
-            f"scale='{size}:-1'",
+            f"scale={size}:-1",
             out_file,
         ]
 
@@ -74,7 +73,7 @@ def convert(
     cmd = [
         CMD_PATH,
         "-loglevel",
-        "verbose",
+        "error",
         "-i",
         in_file,
         "-crf",
@@ -82,7 +81,7 @@ def convert(
         "-movflags",
         "+faststart",
         "-vf",
-        "\"scale=trunc(iw/2)*2:trunc(ih/2)*2\"",
+        "scale=trunc(iw/2)*2:trunc(ih/2)*2",
         "-vcodec",
         "h264",
         "-acodec",

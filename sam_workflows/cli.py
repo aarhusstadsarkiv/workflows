@@ -2,15 +2,17 @@ import codecs
 import sys
 import asyncio
 from pathlib import Path
+from typing import List
+
 from gooey import Gooey, GooeyParser
 
 from sam_workflows.commands import generate_sam_access_files, search_backup
-from config import load_json_config, load_toml_config
+from sam_workflows.config import load_json_config  # load_toml_config
 
 # -----------------------------------------------------------------------------
 # Setup
 # -----------------------------------------------------------------------------
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 
 utf8_stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
 utf8_stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
@@ -28,10 +30,10 @@ if sys.stderr.encoding != "UTF-8":
     program_name=f"ACA Workflows, version {__version__}",
     program_description="Værktøj til at arbejde med forskellige workflows",
     navigation="SIDEBAR",
-    sidebar_title="Værktøjer",
+    sidebar_title="Workflows",
     show_sidebar=True,
     default_size=(1000, 650),
-    show_restart_button=False,
+    show_restart_button=True,
     show_failure_modal=False,
     show_success_modal=False,
 )
@@ -42,7 +44,9 @@ async def main() -> None:
     except Exception as e:
         sys.exit(e)
 
-    config = load_toml_config()
+    # TODO
+    # config = load_toml_config()
+
     cli = GooeyParser(
         # usage="aca [-h] [--ignore-gooey] COMMAND [OPTIONS]",
         description="Collections of workflows to run"
@@ -70,8 +74,8 @@ async def main() -> None:
         widget="FileChooser",
         type=Path,
         gooey_options={
-            "initial_value": str(Path(Path.home(), "Workflows", "job.csv")),
-            "default_dir": str(Path(Path.home(), "Workflows")),
+            "initial_value": str(Path.home() / "Workflows" / "job.csv"),
+            "default_dir": str(Path.home() / "Workflows"),
             "full_width": True,
         },
     )
@@ -82,8 +86,8 @@ async def main() -> None:
         widget="FileSaver",
         type=Path,
         gooey_options={
-            "initial_value": str(Path(Path.home(), "Workflows", "done.csv")),
-            "default_dir": str(Path(Path.home(), "Workflows")),
+            "initial_value": str(Path.home() / "Workflows" / "done.csv"),
+            "default_dir": str(Path.home() / "Workflows"),
             "full_width": True,
         },
     )
@@ -128,8 +132,8 @@ async def main() -> None:
         type=Path,
         # dest="backupfile",
         gooey_options={
-            "initial_value": str(Path(config["sam_backup_path"], "oas_backup_file.csv")),
-            "default_dir": config["sam_backup_path"],
+            "initial_value": str(Path.home() / "oas_backup_file.csv"),
+            "default_dir": str(Path.home()),
             "full_width": True,
         },
     )
@@ -141,10 +145,8 @@ async def main() -> None:
         type=Path,
         # dest="searchresult",
         gooey_options={
-            "initial_value": str(
-                Path(Path.home(), "Workflows", "id-list.csv")
-            ),
-            "default_dir": str(Path(Path.home(), "Workflows")),
+            "initial_value": str(Path.home() / "Workflows" / "id-list.csv"),
+            "default_dir": str(Path.home() / "Workflows"),
             "full_width": True,
         },
     ),
@@ -153,7 +155,7 @@ async def main() -> None:
         # metavar="Storage-id",
         type=str,
         # dest="storage_id",
-        help="Filtrér backup-filen efter et bestemt storage-id",
+        help="Filtrér backup-filen efter storage-id(er) (adskilt med komma)",
     )
     args = cli.parse_args()
 
@@ -171,17 +173,23 @@ async def main() -> None:
             sys.exit(e)
 
     elif args.command == "search":
+        filters: List = []
+        if args.storage_id:
+            filters.append(
+                {"key": "storage_id", "value": str(args.storage_id).split(",")}
+            )
         try:
             await search_backup(
                 Path(args.backup_file),
                 Path(args.search_result),
-                filters=[{"key": "storage_id", "value": args.storage_id}],
+                filters=filters,
             )
         except Exception as e:
             sys.exit(e)
 
     else:
         print("No command chosen", flush=True)
+    print("", flush=True)  # add line to output window
 
 
 if __name__ == "__main__":
