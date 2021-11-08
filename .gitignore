@@ -1,3 +1,5 @@
+config.json
+config.toml
 .vscode/
 
 # Byte-compiled / optimized / DLL files
@@ -64,3 +66,4 @@ venv.bak/
 
 # Windows
 Thumbs.db
+
