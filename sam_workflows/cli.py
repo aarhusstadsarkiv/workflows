@@ -1,6 +1,7 @@
 import codecs
 import sys
 import asyncio
+from importlib.metadata import version
 from pathlib import Path
 from typing import List
 
@@ -12,7 +13,6 @@ from sam_workflows.config import load_json_config  # load_toml_config
 # -----------------------------------------------------------------------------
 # Setup
 # -----------------------------------------------------------------------------
-__version__ = "0.6.1"
 
 utf8_stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
 utf8_stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
@@ -27,12 +27,12 @@ if sys.stderr.encoding != "UTF-8":
 
 
 @Gooey(
-    program_name=f"ACA Workflows, version {__version__}",
+    program_name=f"ACA Workflows, version {version('sam_workflows')}",
     program_description="Værktøj til at arbejde med forskellige workflows",
     navigation="SIDEBAR",
     sidebar_title="Workflows",
     show_sidebar=True,
-    default_size=(1000, 650),
+    default_size=(1000, 600),
     show_restart_button=True,
     show_failure_modal=False,
     show_success_modal=False,

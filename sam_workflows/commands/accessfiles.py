@@ -6,7 +6,7 @@ from os import environ as env
 from typing import List, Dict, Union
 from pathlib import Path
 
-import sam_workflows.converters as conv
+import sam_workflows.converters as converters
 from sam_workflows.cloud import upload_files, UploadError
 from sam_workflows.utils import load_csv_from_sam, save_csv_to_sam
 
@@ -19,7 +19,7 @@ async def generate_sam_access_files(
     overwrite: bool = False,
     dryrun: bool = False,
 ) -> None:
-    """Generates, uploads and copies access-images from the files in the
+    """Generates, uploads and copies access-copies of the files in the
     csv-file.
 
     Parameters
@@ -64,19 +64,18 @@ async def generate_sam_access_files(
     if not MASTER_PATH.exists():
         raise Exception("Path to Masterfiles does not exist.")
 
-    # Ensure existence of access and temp folder
+    # If 'access' and 'temp' paths does not exist, create them
     ACCESS_PATH.mkdir(parents=True, exist_ok=True)
     TEMP_PATH: Path = Path.home() / env["APP_DIR"] / "temp"
     TEMP_PATH.mkdir(parents=True, exist_ok=True)
 
+    # get configvars through the environment
     ACCESS_LARGE_SIZE = int(env["SAM_ACCESS_LARGE_SIZE"])
     ACCESS_MEDIUM_SIZE = int(env["SAM_ACCESS_MEDIUM_SIZE"])
     ACCESS_SMALL_SIZE = int(env["SAM_ACCESS_SMALL_SIZE"])
     IMAGE_FORMATS = env["SAM_IMAGE_FORMATS"].split(" ")
     VIDEO_FORMATS = env["SAM_VIDEO_FORMATS"].split(" ")
-    # ACASTORAGE_URL = "/".join(
-    #     [env["ACASTORAGE_ROOT"], env["ACASTORAGE_CONTAINER"]]
-    # )
+
 
     ##########################
     # Load csv-file from SAM #
@@ -95,8 +94,8 @@ async def generate_sam_access_files(
         constractual_status: str = data.get("contractual_status", "1")
         filename: str = data["filename"]
         out_dir = ACCESS_PATH / file_id
-        filedata: Dict[str, Union[str, Path]] = {"oasid": file_id}
         Path(ACCESS_PATH / file_id).mkdir(exist_ok=True)
+        filedata: Dict[str, Union[str, Path]] = {"oasid": file_id}
 
         print(f"Processing {idx} of {files_count}: {filename}", flush=True)
 
@@ -126,13 +125,13 @@ async def generate_sam_access_files(
                 # copy master-pdf to relevant sub-access-dir
                 shutil.copy2(filepath, out_dir / f"{file_id}_c.pdf")
                 # thumbnails
-                thumbs = conv.pdf_thumbnails(
+                thumbs = converters.pdf_thumbnails(
                     filepath,
                     out_dir,
                     watermark=no_watermark,
                     overwrite=overwrite,
                 )
-            except conv.ConvertError as e:
+            except converters.ConvertError as e:
                 print(f"ConvertError when converting pdf: {e}", flush=True)
                 continue
             except Exception as e:
@@ -152,13 +151,13 @@ async def generate_sam_access_files(
             # generate thumbnails
             try:
                 print("Generating thumbs from video...", flush=True)
-                thumbs = conv.video_thumbnails(
+                thumbs = converters.video_thumbnails(
                     filepath,
                     out_dir,
                     watermark=no_watermark,
                     overwrite=overwrite,
                 )
-            except conv.ConvertError as e:
+            except converters.ConvertError as e:
                 print(
                     f"ConvertError generating thumbnails from video: {e}",
                     flush=True,
@@ -179,8 +178,8 @@ async def generate_sam_access_files(
                     flush=True,
                 )
                 record_file = out_dir / f"{file_id}.mp4"
-                conv.video_convert(filepath, record_file, timeout=300)
-            except conv.ConvertError as e:
+                converters.video_convert(filepath, record_file, timeout=300)
+            except converters.ConvertError as e:
                 print(f"ConvertError converting video: {e}", flush=True)
                 continue
             except Exception as e:
@@ -199,7 +198,7 @@ async def generate_sam_access_files(
 
         elif filepath.suffix in IMAGE_FORMATS:
             try:
-                thumbs = conv.image_thumbnails(
+                thumbs = converters.image_thumbnails(
                     filepath,
                     out_dir,
                     thumbnails=[
@@ -210,7 +209,7 @@ async def generate_sam_access_files(
                     watermark=no_watermark,
                     overwrite=overwrite,
                 )
-            except conv.ConvertError as e:
+            except converters.ConvertError as e:
                 print(f"ConvertError converting image: {e}", flush=True)
                 continue
             except Exception as e:
@@ -233,7 +232,7 @@ async def generate_sam_access_files(
             continue
 
         # Upload access-files if "local" option not checked
-        if not local:
+        if not (local or dryrun):
             # if dryrun, upload to "test"-folder
             # dest_dir = Path(env["ACASTORAGE_ROOT"])
             # if dryrun:
