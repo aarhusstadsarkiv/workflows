@@ -7,8 +7,8 @@ from typing import List
 
 from gooey import Gooey, GooeyParser
 
-from sam_workflows.commands import generate_sam_access_files, search_backup
-from sam_workflows.config import load_json_config  # load_toml_config
+from sam_workflows.commands import accessfiles, search
+from sam_workflows.config import config
 
 # -----------------------------------------------------------------------------
 # Setup
@@ -40,7 +40,7 @@ if sys.stderr.encoding != "UTF-8":
 async def main() -> None:
     # Load config or exit
     try:
-        load_json_config()
+        config.load_json_configuration()
     except Exception as e:
         sys.exit(e)
 
@@ -119,12 +119,12 @@ async def main() -> None:
     ###############
     # Search-parser
     ###############
-    search = subs.add_parser(
+    search_backup = subs.add_parser(
         "search",
         help="Generér id-liste til SAM ved at filtrere backup-filen",
     )
     # Arguments
-    search.add_argument(
+    search_backup.add_argument(
         "backup_file",
         metavar="Backup-fil",
         help="Sti til backup-filen",
@@ -137,7 +137,7 @@ async def main() -> None:
             "full_width": True,
         },
     )
-    search.add_argument(
+    search_backup.add_argument(
         "search_result",
         metavar="Id-list",
         help="Sti til filen med søgereultatet",
@@ -150,7 +150,7 @@ async def main() -> None:
             "full_width": True,
         },
     ),
-    search.add_argument(
+    search_backup.add_argument(
         "--storage-id",
         # metavar="Storage-id",
         type=str,
@@ -161,7 +161,7 @@ async def main() -> None:
 
     if args.command == "accessfiles":
         try:
-            await generate_sam_access_files(
+            await accessfiles.generate_sam_access_files(
                 Path(args.sam_access_input_csv),
                 Path(args.sam_access_output_csv),
                 no_watermark=args.plain,
@@ -184,7 +184,7 @@ async def main() -> None:
                 }
             )
         try:
-            await search_backup(
+            await search.search_backup(
                 Path(args.backup_file),
                 Path(args.search_result),
                 filters=filters,

@@ -5,7 +5,7 @@ from typing import Any, List, Dict, Optional
 import numpy as np
 from PIL import Image, ExifTags
 
-from sam_workflows.utils import add_watermark
+from sam_workflows.utils import watermark
 from .exceptions import ConvertError
 
 
@@ -86,7 +86,7 @@ def thumbnails(
         # If larger than watermark-width, add watermark
         if not no_watermark:
             if copy_img.width > int(env["SAM_WATERMARK_WIDTH"]):
-                copy_img = add_watermark(copy_img)
+                copy_img = watermark.add_watermark_to_image(copy_img)
 
         try:
             copy_img.save(out_file)

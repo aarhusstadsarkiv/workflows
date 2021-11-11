@@ -15,7 +15,7 @@ def add_watermark_to_path(path: Path) -> None:
     except Exception as e:
         raise ImageError(f"Cannot open path as PIL.Image: {path}: {e}")
     try:
-        image = add_watermark(img)
+        image = add_watermark_to_image(img)
     except Exception as e:
         raise ImageError(f"Unable to add watermark to image: {e}")
 
@@ -25,7 +25,7 @@ def add_watermark_to_path(path: Path) -> None:
         raise ImageError(f"Unable to save watermarked image to {path}: {e}")
 
 
-def add_watermark(img: Image) -> Image:
+def add_watermark_to_image(img: Image) -> Image:
     """Adds a ACA-watermark in the bottom-right corner of the supplied image.
 
     Parameters
@@ -35,7 +35,7 @@ def add_watermark(img: Image) -> Image:
 
     Returns
     ------
-    Image
+    Image with watermark
     """
 
     WATERMARK_WIDTH = int(env["SAM_WATERMARK_WIDTH"])

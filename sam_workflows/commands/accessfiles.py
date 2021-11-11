@@ -7,8 +7,8 @@ from typing import List, Dict, Union
 from pathlib import Path
 
 import sam_workflows.converters as converters
-from sam_workflows.cloud import upload_files, UploadError
-from sam_workflows.utils import load_csv_from_sam, save_csv_to_sam
+from sam_workflows.cloud import blobstore
+from sam_workflows.utils import fileio
 
 
 async def generate_sam_access_files(
@@ -79,7 +79,7 @@ async def generate_sam_access_files(
     ##########################
     # Load csv-file from SAM #
     ##########################
-    files: List[Dict] = load_csv_from_sam(csv_in)
+    files: List[Dict] = fileio.load_csv_from_sam(csv_in)
     files_count: int = len(files)
     output: List[Dict] = []
     print(f"Csv-file loaded. {files_count} files to process.", flush=True)
@@ -177,7 +177,9 @@ async def generate_sam_access_files(
                     flush=True,
                 )
                 record_file = out_dir / f"{file_id}.mp4"
-                converters.video_convert(filepath, record_file, timeout=300)
+                converters.video_convert(
+                    filepath, record_file, timeout=300, overwrite=overwrite
+                )
             except converters.ConvertError as e:
                 print(f"ConvertError converting video: {e}", flush=True)
                 continue
@@ -258,8 +260,8 @@ async def generate_sam_access_files(
                 if k in keys
             ]
             try:
-                await upload_files(paths, overwrite=overwrite)
-            except UploadError as e:
+                await blobstore.upload_files(paths, overwrite=overwrite)
+            except blobstore.UploadError as e:
                 if not overwrite and "BlobAlreadyExists" in str(e):
                     print(
                         f"Skipping upload.{filename} already exists.",
@@ -288,7 +290,7 @@ async def generate_sam_access_files(
             print("One or more files were not processed", flush=True)
             print("Writing processed files to csv-file", flush=True)
         try:
-            save_csv_to_sam(output, csv_out)
+            fileio.save_csv_to_sam(output, csv_out)
         except Exception as e:
             print(f"Error trying to generate csv-file: {e}", flush=True)
 

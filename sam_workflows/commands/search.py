@@ -2,7 +2,7 @@ import csv
 from typing import List, Dict
 from pathlib import Path
 
-from sam_workflows.utils import load_oas_backup
+from sam_workflows.utils import fileio
 
 
 async def filter_on_storage_id(record: Dict, values: List) -> bool:
@@ -22,7 +22,7 @@ async def search_backup(
     backup_file: Path, id_file: Path, filters: List[Dict]
 ) -> None:
     print("Loading and parsing backup-file. It might take a while", flush=True)
-    backup = load_oas_backup(backup_file)
+    backup = fileio.load_oas_backup(backup_file)
     print("Filtering backup-file for matches...", flush=True)
     out: List = []
 

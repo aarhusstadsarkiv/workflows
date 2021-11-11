@@ -2,12 +2,14 @@ from pathlib import Path
 from os import environ as env
 from typing import List, Dict
 
-from sam_workflows.utils import subprocess
-from sam_workflows.utils.watermark import ImageError, add_watermark_to_path
-from .exceptions import ConvertError
+from sam_workflows.utils import subprocess, watermark
 
-# CMD_PATH = Path.home() / env["APP_DIR"] / "bin" / "ffmpeg.exe"
+
 CMD_PATH = Path.home() / ".sam_workflows" / "bin" / "ffmpeg.exe"
+
+
+class ConvertError(Exception):
+    """Implements error to raise when conversion fails."""
 
 
 def thumbnails(
@@ -25,7 +27,7 @@ def thumbnails(
 
     # validate
     if not in_file.is_file():
-        raise FileNotFoundError(f"Input-path not a pdf-file: {in_file}")
+        raise FileNotFoundError(f"Input-path not a video-file: {in_file}")
 
     if in_file.suffix not in env["SAM_VIDEO_FORMATS"]:
         raise ConvertError(f"Unsupported fileformat: {in_file}")
@@ -40,11 +42,11 @@ def thumbnails(
             out_dir / f"{in_file.stem}{thumb['suffix']}{extension}"
         )
 
-        if out_file.exists() and not overwrite:
-            raise FileExistsError(f"File already exists: {out_file}")
-
         if out_file.exists():
-            out_file.unlink()
+            if not overwrite:
+                raise FileExistsError(f"File already exists: {out_file}")
+            else:
+                out_file.unlink()
 
         size = thumb["size"]
 
@@ -67,7 +69,7 @@ def thumbnails(
 
         if not no_watermark:
             if size > int(env["SAM_WATERMARK_WIDTH"]):
-                add_watermark_to_path(out_file)
+                watermark.add_watermark_to_path(out_file)
 
         response.append(out_file)
 
@@ -85,17 +87,14 @@ def convert(
     if not in_file.is_file():
         raise FileNotFoundError(f"Input-path not a video file: {in_file}")
 
-    if not out_file.is_file():
-        raise FileNotFoundError(f"Output-path is not video file: {out_file}")
+    if not out_file.parent.exists():
+        out_file.parent.mkdir(parents=True, exist_ok=True)
 
     if out_file.exists():
         if not overwrite:
             raise FileExistsError(f"Output-file already exists: {out_file}")
         else:
             out_file.unlink()
-
-    if not out_file.parent.exists():
-        out_file.parent.mkdir(parents=True, exist_ok=True)
 
     cmd = [
         CMD_PATH,

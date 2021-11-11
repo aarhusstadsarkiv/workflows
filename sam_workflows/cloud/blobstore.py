@@ -6,7 +6,17 @@ from azure.identity.aio import EnvironmentCredential
 from azure.keyvault.secrets.aio import SecretClient
 from azure.storage.blob.aio import ContainerClient
 
-from .exceptions import UploadError
+
+class ACAError(Exception):
+    """Base exception for ACAStorage errors."""
+
+
+class UploadError(ACAError):
+    """Error to raise when upload and related functionality fails.
+    This is implemented because it is unclear which exceptions are
+    potentially raised from upload in the Azure Blob Storage SDK.
+    Thus, we intercept all possible exceptions and re-raise with this.
+    """
 
 
 class ACAStorage(ContainerClient):

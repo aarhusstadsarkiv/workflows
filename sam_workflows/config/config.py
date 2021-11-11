@@ -31,7 +31,7 @@ CONFIG_KEYS = [
 ]
 
 
-def load_toml_config() -> Dict:
+def load_toml_configuration() -> Dict:
     """Returns config as dict"""
     conf = CONFIG_DIR / TOML_FILE
     if not conf.is_file():
@@ -42,7 +42,7 @@ def load_toml_config() -> Dict:
     return dict(config_dict)
 
 
-def load_json_config() -> None:
+def load_json_configuration() -> None:
     """Loads all CONFIG_KEYS from config.json into the environment"""
 
     conf = CONFIG_DIR / JSON_FILE
