@@ -76,7 +76,6 @@ async def generate_sam_access_files(
     IMAGE_FORMATS = env["SAM_IMAGE_FORMATS"].split(" ")
     VIDEO_FORMATS = env["SAM_VIDEO_FORMATS"].split(" ")
 
-
     ##########################
     # Load csv-file from SAM #
     ##########################
@@ -128,7 +127,7 @@ async def generate_sam_access_files(
                 thumbs = converters.pdf_thumbnails(
                     filepath,
                     out_dir,
-                    watermark=no_watermark,
+                    no_watermark=no_watermark,
                     overwrite=overwrite,
                 )
             except converters.ConvertError as e:
@@ -154,7 +153,7 @@ async def generate_sam_access_files(
                 thumbs = converters.video_thumbnails(
                     filepath,
                     out_dir,
-                    watermark=no_watermark,
+                    no_watermark=no_watermark,
                     overwrite=overwrite,
                 )
             except converters.ConvertError as e:
@@ -206,7 +205,7 @@ async def generate_sam_access_files(
                         {"size": ACCESS_MEDIUM_SIZE, "suffix": "_m"},
                         {"size": ACCESS_LARGE_SIZE, "suffix": "_l"},
                     ],
-                    watermark=no_watermark,
+                    no_watermark=no_watermark,
                     overwrite=overwrite,
                 )
             except converters.ConvertError as e:

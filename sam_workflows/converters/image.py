@@ -16,7 +16,7 @@ def thumbnails(
         {"size": 150, "suffix": "_s"},
         {"size": 640, "suffix": "_m"},
     ],
-    watermark: bool = True,
+    no_watermark: bool = False,
     overwrite: bool = False,
     extension: str = ".jpg",
 ) -> List[Path]:
@@ -84,7 +84,7 @@ def thumbnails(
         copy_img.thumbnail((thumb.get("size"), thumb.get("size")))
 
         # If larger than watermark-width, add watermark
-        if watermark:
+        if not no_watermark:
             if copy_img.width > int(env["SAM_WATERMARK_WIDTH"]):
                 copy_img = add_watermark(copy_img)
 

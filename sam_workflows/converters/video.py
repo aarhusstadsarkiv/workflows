@@ -3,6 +3,7 @@ from os import environ as env
 from typing import List, Dict
 
 from sam_workflows.utils import subprocess
+from sam_workflows.utils.watermark import ImageError, add_watermark_to_path
 from .exceptions import ConvertError
 
 # CMD_PATH = Path.home() / env["APP_DIR"] / "bin" / "ffmpeg.exe"
@@ -16,8 +17,8 @@ def thumbnails(
         {"size": 150, "suffix": "_s"},
         {"size": 640, "suffix": "_m"},
     ],
-    watermark: bool = True,
-    overwrite: bool = True,
+    no_watermark: bool = False,
+    overwrite: bool = False,
     extension: str = ".jpg",
     offset: int = 12,
 ) -> List[Path]:
@@ -42,6 +43,9 @@ def thumbnails(
         if out_file.exists() and not overwrite:
             raise FileExistsError(f"File already exists: {out_file}")
 
+        if out_file.exists():
+            out_file.unlink()
+
         size = thumb["size"]
 
         cmd = [
@@ -61,14 +65,37 @@ def thumbnails(
 
         subprocess.run(cmd, timeout=30)
 
+        if not no_watermark:
+            if size > int(env["SAM_WATERMARK_WIDTH"]):
+                add_watermark_to_path(out_file)
+
         response.append(out_file)
 
     return response
 
 
 def convert(
-    in_file: Path, out_file: Path, timeout: int = 180, quality: int = 30
+    in_file: Path,
+    out_file: Path,
+    timeout: int = 180,
+    quality: int = 30,
+    overwrite: bool = False,
 ) -> None:
+
+    if not in_file.is_file():
+        raise FileNotFoundError(f"Input-path not a video file: {in_file}")
+
+    if not out_file.is_file():
+        raise FileNotFoundError(f"Output-path is not video file: {out_file}")
+
+    if out_file.exists():
+        if not overwrite:
+            raise FileExistsError(f"Output-file already exists: {out_file}")
+        else:
+            out_file.unlink()
+
+    if not out_file.parent.exists():
+        out_file.parent.mkdir(parents=True, exist_ok=True)
 
     cmd = [
         CMD_PATH,

@@ -176,7 +176,12 @@ async def main() -> None:
         filters: List = []
         if args.storage_id:
             filters.append(
-                {"key": "storage_id", "value": str(args.storage_id).split(",")}
+                {
+                    "key": "storage_id",
+                    "value": [
+                        x.strip() for x in str(args.storage_id).split(",")
+                    ],
+                }
             )
         try:
             await search_backup(

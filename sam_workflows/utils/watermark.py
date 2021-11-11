@@ -1,6 +1,28 @@
 from os import environ as env
 from pathlib import Path
+from typing import Any
 from PIL import Image
+
+
+class ImageError(Exception):
+    """Implements error to raise when conversion fails."""
+
+
+def add_watermark_to_path(path: Path) -> None:
+
+    try:
+        img: Any = Image.open(path)
+    except Exception as e:
+        raise ImageError(f"Cannot open path as PIL.Image: {path}: {e}")
+    try:
+        image = add_watermark(img)
+    except Exception as e:
+        raise ImageError(f"Unable to add watermark to image: {e}")
+
+    try:
+        image.save(path)
+    except Exception as e:
+        raise ImageError(f"Unable to save watermarked image to {path}: {e}")
 
 
 def add_watermark(img: Image) -> Image:
