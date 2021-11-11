@@ -9,6 +9,18 @@ class ImageError(Exception):
 
 
 def add_watermark_to_path(path: Path) -> None:
+    """Adds an ACA-watermark in the bottom-right corner of the image in the
+    supplied path.
+
+    Parameters
+    ----------
+    path : Path
+        Path to a file that can be read by PILLOW
+
+    Returns
+    ------
+    None
+    """
 
     try:
         img: Any = Image.open(path)
@@ -26,7 +38,8 @@ def add_watermark_to_path(path: Path) -> None:
 
 
 def add_watermark_to_image(img: Image) -> Image:
-    """Adds a ACA-watermark in the bottom-right corner of the supplied image.
+    """Adds a ACA-watermark in the bottom-right corner of the supplied PIL
+    Image object.
 
     Parameters
     ----------
@@ -35,7 +48,7 @@ def add_watermark_to_image(img: Image) -> Image:
 
     Returns
     ------
-    Image with watermark
+    PIL Image with watermark
     """
 
     WATERMARK_WIDTH = int(env["SAM_WATERMARK_WIDTH"])
