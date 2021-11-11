@@ -5,10 +5,16 @@ from pathlib import Path
 from sam_workflows.utils import load_oas_backup
 
 
-async def filter_on_storage_id(record: Dict, value: List) -> bool:
-    ids = record["storage_id"]
-    if any(v for v in value if v in ids):
-        return True
+async def filter_on_storage_id(record: Dict, values: List) -> bool:
+    # Storage_id is a list of storage_ids and/or barcodes
+    ids: List = record["storage_id"]
+    for v in values:
+        # test if any of the ids or barcodes starts with any of the
+        # supplied values
+        if any(s for s in ids if str(s).startswith(v)):
+            return True
+        # if any(v for v in value if v in ids):
+        #  return True
     return False
 
 

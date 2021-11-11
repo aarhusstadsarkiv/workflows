@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sam_workflows"
-version = "0.6.1"
+version = "0.6.2"
 
 description = "Workflows for SAM used at Aarhus City Archives"
 authors = ["Claus Juhl Knudsen <cjk@aarhus.dk>", "Nina Jensen <jnik@aarhus.dk>"]

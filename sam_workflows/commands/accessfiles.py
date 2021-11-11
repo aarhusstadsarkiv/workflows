@@ -76,7 +76,6 @@ async def generate_sam_access_files(
     IMAGE_FORMATS = env["SAM_IMAGE_FORMATS"].split(" ")
     VIDEO_FORMATS = env["SAM_VIDEO_FORMATS"].split(" ")
 
-
     ##########################
     # Load csv-file from SAM #
     ##########################
