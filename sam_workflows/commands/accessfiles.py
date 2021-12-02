@@ -58,7 +58,7 @@ async def generate_sam_access_files(
 
     else:
         raise Exception(
-            "You are not using an administrative PC. Only a dryrun is possible."
+            "You are not using an administrative PC. Only dryruns are possible"
         )
 
     if not MASTER_PATH.exists():
@@ -138,8 +138,11 @@ async def generate_sam_access_files(
                     no_watermark=no_watermark,
                     overwrite=overwrite,
                 )
-            except FileExistsError as e:
-                print(f"Skipping convertion as {filename} already exists", flush=True)
+            except FileExistsError:
+                print(
+                    f"Skipping convertion as {filename} already exists",
+                    flush=True,
+                )
                 convert_skipped += 1
                 continue
             except converters.ConvertError as e:
@@ -170,8 +173,9 @@ async def generate_sam_access_files(
                     no_watermark=no_watermark,
                     overwrite=overwrite,
                 )
-            except FileExistsError as e:
-                print(f"Skipping thumb generation as {filename} already exists",
+            except FileExistsError:
+                print(
+                    f"Skipping thumb generation as {filename} already exists",
                     flush=True,
                 )
                 convert_skipped += 1
@@ -202,8 +206,9 @@ async def generate_sam_access_files(
                 converters.video_convert(
                     filepath, record_file, timeout=300, overwrite=overwrite
                 )
-            except FileExistsError as e:
-                print(f"Skipping conversion as {filename} already exists",
+            except FileExistsError:
+                print(
+                    f"Skipping conversion as {filename} already exists",
                     flush=True,
                 )
                 convert_skipped += 1
@@ -240,8 +245,11 @@ async def generate_sam_access_files(
                     no_watermark=no_watermark,
                     overwrite=overwrite,
                 )
-            except FileExistsError as e:
-                print(f"Skipping convertion as {filename} already exists", flush=True)
+            except FileExistsError:
+                print(
+                    f"Skipping convertion as {filename} already exists",
+                    flush=True,
+                )
                 convert_skipped += 1
                 continue
             except converters.ConvertError as e:
@@ -278,11 +286,10 @@ async def generate_sam_access_files(
             # else:
             #     dest_dir = dest_dir / env["ACASTORAGE_CONTAINER"] / file_id
 
-            dest_dir: str = f"{env['ACASTORAGE_ROOT']}/{env['ACASTORAGE_CONTAINER']}/{file_id}"
             container: str = "sam-access"
             if dryrun:
-                dest_dir = f"{env['ACASTORAGE_ROOT']}/test/{file_id}"
                 container = "test"
+
             keys: List = []
             if filedata["record_type"] == "web_document":
                 keys = ["thumbnail", "record_image", "web_document_url"]
@@ -294,13 +301,13 @@ async def generate_sam_access_files(
             paths: List[Dict] = []
             for k, v in filedata.items():
                 if k in keys:
-                    paths.append(
-                        {"filepath": v, "dest_dir": dest_dir}
-                    )
+                    paths.append({"filepath": v})
             print(str(paths[0]), flush=True)
             try:
                 # await blobstore.upload_files(paths, overwrite=overwrite)
-                await blobstore2.upload_files(paths, container, subpath=file_id, overwrite=overwrite)
+                await blobstore2.upload_files(
+                    paths, container, subpath=file_id, overwrite=overwrite
+                )
             except blobstore.UploadError as e:
                 if not overwrite and "BlobAlreadyExists" in str(e):
                     print(
@@ -320,7 +327,11 @@ async def generate_sam_access_files(
                 # no urlencode necessary due to int-based filenames
                 for k in keys:
                     name: str = Path(filedata[k]).name
-                    filedata[k] = f"{dest_dir}/{name}"
+                    filedata[
+                        k
+                    ] = f"""{env['ACASTORAGE_ROOT']}/
+                        {env['ACASTORAGE_CONTAINER']}/{file_id}/{name}"""
+
                     # if type(filedata.get(k)) == "Path":
                     #     filedata[k] = dest_dir / Path(filedata[k]).name
 

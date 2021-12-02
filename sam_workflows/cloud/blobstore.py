@@ -68,7 +68,6 @@ class ACAStorage(ContainerClient):
 
         with source.open("rb") as data:
             try:
-                print(f"Trying to upload {blob_name} from within 'upload_file'. Filesize: {source.stat().st_size}", flush=True)
                 await blob_client.upload_blob(data=data, overwrite=overwrite)
             except Exception as err:
                 raise UploadError(f"Upload of {source} failed: {err}")

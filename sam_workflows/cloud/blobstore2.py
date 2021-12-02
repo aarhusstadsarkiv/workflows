@@ -1,13 +1,9 @@
-from logging import error
+# from logging import error
 import os
-from typing import List, Dict, Any
+from typing import List, Dict
 from pathlib import Path
 
-from azure.identity.aio import EnvironmentCredential
-from azure.keyvault.secrets.aio import SecretClient
-# from azure.storage.blob.aio import ContainerClient
-
-from azure.storage.blob.aio import BlobServiceClient, BlobClient, ContainerClient
+from azure.storage.blob.aio import ContainerClient
 
 
 class ACAError(Exception):
@@ -29,12 +25,10 @@ async def upload_files(
     overwrite: bool = False,
 ) -> None:
 
-    # Instantiate a BlobServiceClient using a connection string, and thereafter a ContainerClient
-    # blob_service_client = BlobServiceClient.from_connection_string(os.getenv("AZURE_STORAGE_CONNECTION_STRING"))
-    # container_client = blob_service_client.get_container_client(container)
-
     # Instantiate a ContainerClient directly
-    container_client = ContainerClient.from_connection_string(os.getenv("AZURE_STORAGE_CONNECTION_STRING"), container)
+    container_client = ContainerClient.from_connection_string(
+        os.getenv("AZURE_STORAGE_CONNECTION_STRING"), container
+    )
 
     if not await container_client.exists():
         raise ACAError(f"No such container exists: {container}")
@@ -49,8 +43,10 @@ async def upload_files(
 
         with open(source, "rb") as data:
             try:
-                await container_client.upload_blob(name=blob_name, data=data, overwrite=overwrite)
+                await container_client.upload_blob(
+                    name=blob_name, data=data, overwrite=overwrite
+                )
             except Exception as error:
                 raise UploadError(f"Upload of {source.name} failed: {error}")
-    
+
     await container_client.close()

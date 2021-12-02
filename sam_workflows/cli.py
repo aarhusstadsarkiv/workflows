@@ -110,7 +110,10 @@ async def main() -> None:
         "--dryrun",
         metavar="Testkørsel",
         action="store_true",
-        help="Accessfilerne lægges lokalt i 'Overførsler'-mappen og online i 'test'-containeren",
+        help=(
+            "Accessfilerne lægges lokalt i 'Overførsler'-mappen og online i \
+            'test'-containeren",
+        ),
     )
 
     ###############
