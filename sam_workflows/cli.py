@@ -10,9 +10,6 @@ from gooey import Gooey, GooeyParser
 from sam_workflows.commands import accessfiles, search
 from sam_workflows.config import config
 
-# -----------------------------------------------------------------------------
-# Setup
-# -----------------------------------------------------------------------------
 
 utf8_stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
 utf8_stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
@@ -45,7 +42,7 @@ async def main() -> None:
         sys.exit(e)
 
     # TODO
-    # config = load_toml_config()
+    # config = load_toml_configuration()
 
     cli = GooeyParser(
         # usage="aca [-h] [--ignore-gooey] COMMAND [OPTIONS]",
@@ -113,7 +110,7 @@ async def main() -> None:
         "--dryrun",
         metavar="Testkørsel",
         action="store_true",
-        help="Accessfilerne lægges kun i din 'Overførsler'-mappe",
+        help="Accessfilerne lægges lokalt i 'Overførsler'-mappen og online i 'test'-containeren",
     )
 
     ###############

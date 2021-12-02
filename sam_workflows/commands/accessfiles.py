@@ -58,7 +58,7 @@ async def generate_sam_access_files(
 
     else:
         raise Exception(
-            "You are not using an adminPC. Only a dryrun is possible."
+            "You are not using an administrative PC. Only a dryrun is possible."
         )
 
     if not MASTER_PATH.exists():
@@ -81,6 +81,10 @@ async def generate_sam_access_files(
     ##########################
     files: List[Dict] = fileio.load_csv_from_sam(csv_in)
     files_count: int = len(files)
+    convert_errors: int = 0
+    upload_errors: int = 0
+    convert_skipped: int = 0
+    upload_skipped: int = 0
     output: List[Dict] = []
     print(f"Csv-file loaded. {files_count} files to process.", flush=True)
 
@@ -101,21 +105,25 @@ async def generate_sam_access_files(
         # Check rights
         if int(legal_status.split(";")[0]) > 1:
             print(f"Skipping {filename} due to legal restrictions", flush=True)
+            convert_skipped += 1
             continue
         if int(constractual_status.split(";")[0]) < 3:
             print(
                 f"Skipping {filename} due to contractual restrictions",
                 flush=True,
             )
+            convert_skipped += 1
             continue
 
         # validate filepath
         filepath = MASTER_PATH / filename
         if not filepath.exists():
             print(f"No file found at: {filepath}", flush=True)
+            convert_errors += 1
             continue
         if not filepath.is_file():
             print(f"Filepath refers to a directory: {filepath}", flush=True)
+            convert_errors += 1
             continue
 
         # convert according to file extension
@@ -124,17 +132,23 @@ async def generate_sam_access_files(
                 # copy master-pdf to relevant sub-access-dir
                 shutil.copy2(filepath, out_dir / f"{file_id}_c.pdf")
                 # thumbnails
-                thumbs = converters.pdf_thumbnails(
+                thumbs: List[Path] = converters.pdf_thumbnails(
                     filepath,
                     out_dir,
                     no_watermark=no_watermark,
                     overwrite=overwrite,
                 )
+            except FileExistsError as e:
+                print(f"Skipping convertion as {filename} already exists", flush=True)
+                convert_skipped += 1
+                continue
             except converters.ConvertError as e:
                 print(f"ConvertError when converting pdf: {e}", flush=True)
+                convert_errors += 1
                 continue
             except Exception as e:
                 print(f"Unknown error when converting pdf: {e}", flush=True)
+                convert_errors += 1
                 continue
 
             filedata.update(
@@ -150,23 +164,31 @@ async def generate_sam_access_files(
             # generate thumbnails
             try:
                 print("Generating thumbs from video...", flush=True)
-                thumbs = converters.video_thumbnails(
+                thumbs: List[Path] = converters.video_thumbnails(
                     filepath,
                     out_dir,
                     no_watermark=no_watermark,
                     overwrite=overwrite,
                 )
+            except FileExistsError as e:
+                print(f"Skipping thumb generation as {filename} already exists",
+                    flush=True,
+                )
+                convert_skipped += 1
+                continue
             except converters.ConvertError as e:
                 print(
                     f"ConvertError generating thumbnails from video: {e}",
                     flush=True,
                 )
+                convert_errors += 1
                 continue
             except Exception as e:
                 print(
                     f"Unknown error generating thumbnails from video: {e}",
                     flush=True,
                 )
+                convert_errors += 1
                 continue
 
             # Generate access copy
@@ -180,11 +202,19 @@ async def generate_sam_access_files(
                 converters.video_convert(
                     filepath, record_file, timeout=300, overwrite=overwrite
                 )
+            except FileExistsError as e:
+                print(f"Skipping conversion as {filename} already exists",
+                    flush=True,
+                )
+                convert_skipped += 1
+                continue
             except converters.ConvertError as e:
                 print(f"ConvertError converting video: {e}", flush=True)
+                convert_errors += 1
                 continue
             except Exception as e:
                 print(f"Unknown error converting video: {e}", flush=True)
+                convert_errors += 1
                 continue
 
             # Update filedata if all went well
@@ -199,7 +229,7 @@ async def generate_sam_access_files(
 
         elif filepath.suffix in IMAGE_FORMATS:
             try:
-                thumbs = converters.image_thumbnails(
+                thumbs: List[Path] = converters.image_thumbnails(
                     filepath,
                     out_dir,
                     thumbnails=[
@@ -210,13 +240,19 @@ async def generate_sam_access_files(
                     no_watermark=no_watermark,
                     overwrite=overwrite,
                 )
+            except FileExistsError as e:
+                print(f"Skipping convertion as {filename} already exists", flush=True)
+                convert_skipped += 1
+                continue
             except converters.ConvertError as e:
                 print(f"ConvertError converting image: {e}", flush=True)
+                convert_errors += 1
                 continue
             except Exception as e:
                 print(
                     f"Exception raised when converting image: {e}", flush=True
                 )
+                convert_errors += 1
                 continue
 
             filedata.update(
@@ -230,10 +266,11 @@ async def generate_sam_access_files(
 
         else:
             print(f"Unable to handle fileformat: {filename}", flush=True)
+            convert_errors += 1
             continue
 
         # Upload access-files if "local" option not checked
-        if not (local or dryrun):
+        if not local:
             # if dryrun, upload to "test"-folder
             # dest_dir = Path(env["ACASTORAGE_ROOT"])
             # if dryrun:
@@ -241,12 +278,13 @@ async def generate_sam_access_files(
             # else:
             #     dest_dir = dest_dir / env["ACASTORAGE_CONTAINER"] / file_id
 
-            dest_dir: Path = (
-                Path(env["ACASTORAGE_ROOT"])
-                / env["ACASTORAGE_CONTAINER"]
-                / file_id
-            )
-            keys: List
+            dest_dir: str = ""
+            if dryrun:
+                dest_dir = f"{env['ACASTORAGE_ROOT']}/test/{file_id}"
+            else:
+                dest_dir = f"{env['ACASTORAGE_ROOT']}/{env['ACASTORAGE_CONTAINER']}/{file_id}"
+
+            keys: List = []
             if filedata["record_type"] == "web_document":
                 keys = ["thumbnail", "record_image", "web_document_url"]
             elif filedata["record_type"] == "video":
@@ -254,30 +292,37 @@ async def generate_sam_access_files(
             else:
                 keys = ["thumbnail", "record_image", "large_image"]
 
-            paths: List[Dict] = [
-                {"filepath": v, "dest_dir": dest_dir}
-                for k, v in filedata.items()
-                if k in keys
-            ]
+            paths: List[Dict] = []
+            for k, v in filedata.items():
+                if k in keys:
+                    paths.append(
+                        {"filepath": v, "dest_dir": dest_dir}
+                    )
+            print(str(paths[0]), flush=True)
             try:
                 await blobstore.upload_files(paths, overwrite=overwrite)
             except blobstore.UploadError as e:
                 if not overwrite and "BlobAlreadyExists" in str(e):
                     print(
-                        f"Skipping upload.{filename} already exists.",
+                        f"Skipping upload.{filename} already exists",
                         flush=True,
                     )
+                    upload_skipped += 1
                 else:
                     print(f"Failed to upload {filename}: {e}", flush=True)
+                    upload_errors += 1
             except Exception as e:
                 print(f"Failed to upload {filename}: {e}", flush=True)
+                upload_errors += 1
             else:
                 print(f"Uploaded files for {filename}", flush=True)
                 # update filedata with online paths
                 # no urlencode necessary due to int-based filenames
                 for k in keys:
-                    if type(filedata.get(k)) == "Path":
-                        filedata[k] = dest_dir / Path(filedata[k]).name
+                    name: str = Path(filedata[k]).name
+                    filedata[k] = f"{dest_dir}/{name}"
+                    # if type(filedata.get(k)) == "Path":
+                    #     filedata[k] = dest_dir / Path(filedata[k]).name
 
         output.append(filedata)
 
@@ -285,10 +330,11 @@ async def generate_sam_access_files(
     # save to SAM csv-file #
     ########################
     if output:
-        print("Finished proccessing files", flush=True)
-        if len(output) < files_count:
-            print("One or more files were not processed", flush=True)
-            print("Writing processed files to csv-file", flush=True)
+        print(f"Finished processing {files_count} files", flush=True)
+        print(f"{convert_skipped} files were skipped", flush=True)
+        print(f"{convert_errors} files failed processing", flush=True)
+        print(f"{upload_skipped} files skipped upload", flush=True)
+        print(f"{upload_errors} files failed upload", flush=True)
         try:
             fileio.save_csv_to_sam(output, csv_out)
         except Exception as e:

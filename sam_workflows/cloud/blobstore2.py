@@ -1,10 +1,12 @@
-from os import environ as env
+import os
 from typing import List, Dict, Any
 from pathlib import Path
 
-from azure.identity.aio import EnvironmentCredential
-from azure.keyvault.secrets.aio import SecretClient
-from azure.storage.blob.aio import ContainerClient
+# from azure.identity.aio import EnvironmentCredential
+# from azure.keyvault.secrets.aio import SecretClient
+# from azure.storage.blob.aio import ContainerClient
+
+from azure.storage.blob.aio import BlobServiceClient, BlobClient, ContainerClient
 
 
 class ACAError(Exception):
@@ -17,6 +19,39 @@ class UploadError(ACAError):
     potentially raised from upload in the Azure Blob Storage SDK.
     Thus, we intercept all possible exceptions and re-raise with this.
     """
+
+
+async def upload_files_2(
+    filelist: List[Dict],
+    container: str = "sam-access",
+    overwrite: bool = False,
+) -> None:
+
+    # Instantiate a BlobServiceClient using a connection string, and thereafter a ContainerClient
+    # blob_service_client = BlobServiceClient.from_connection_string(os.getenv("AZURE_STORAGE_CONNECTION_STRING"))
+    # container_client = blob_service_client.get_container_client(container)
+
+    # Instantiate a ContainerClient directly
+    container_client = ContainerClient.from_connection_string(os.getenv("AZURE_STORAGE_CONNECTION_STRING"), container)
+
+    if not container_client.exists():
+        raise ACAError(f"No such container exists: {container}")
+
+    for f in filelist:
+        source_file: Path = f["filepath"]
+        dest_dir: str = f["dest_dir"]
+
+        if not source_file.is_file():
+            raise FileNotFoundError(f"Source {source_file} is not a file.")
+
+        blob_name: str = f"{dest_dir}/{source_file.name}"
+
+        # f["filepath"], f["dest_dir"], overwrite=overwrite
+        with open(source_file, "rb") as data:
+            await container_client.upload_blob(name=blob_name, data=data, overwrite=overwrite)
+
+        # blob_client = self.get_blob_client(blob_name)
+        # blob = BlobClient.from_connection_string(conn_str="<connection_string>", container_name="my_container", blob_name="my_blob")
 
 
 class ACAStorage(ContainerClient):

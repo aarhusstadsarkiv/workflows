@@ -13,6 +13,7 @@ CONFIG_KEYS = [
     "azure_client_id",
     "azure_client_secret",
     "azure_blobstore_vaultkey",
+    "azure_storage_connection_string",
     "acastorage_root",
     "acastorage_container",
     "m_drive_master_path",
