@@ -7,7 +7,7 @@ from typing import List, Dict, Union
 from pathlib import Path
 
 import sam_workflows.converters as converters
-from sam_workflows.cloud import blobstore
+from sam_workflows.cloud import blobstore, blobstore2
 from sam_workflows.utils import fileio
 
 
@@ -278,12 +278,11 @@ async def generate_sam_access_files(
             # else:
             #     dest_dir = dest_dir / env["ACASTORAGE_CONTAINER"] / file_id
 
-            dest_dir: str = ""
+            dest_dir: str = f"{env['ACASTORAGE_ROOT']}/{env['ACASTORAGE_CONTAINER']}/{file_id}"
+            container: str = "sam-access"
             if dryrun:
                 dest_dir = f"{env['ACASTORAGE_ROOT']}/test/{file_id}"
-            else:
-                dest_dir = f"{env['ACASTORAGE_ROOT']}/{env['ACASTORAGE_CONTAINER']}/{file_id}"
-
+                container = "test"
             keys: List = []
             if filedata["record_type"] == "web_document":
                 keys = ["thumbnail", "record_image", "web_document_url"]
@@ -300,7 +299,8 @@ async def generate_sam_access_files(
                     )
             print(str(paths[0]), flush=True)
             try:
-                await blobstore.upload_files(paths, overwrite=overwrite)
+                # await blobstore.upload_files(paths, overwrite=overwrite)
+                await blobstore2.upload_files(paths, container, subpath=file_id, overwrite=overwrite)
             except blobstore.UploadError as e:
                 if not overwrite and "BlobAlreadyExists" in str(e):
                     print(
