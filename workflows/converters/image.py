@@ -5,7 +5,7 @@ from typing import Any, List, Dict, Optional
 import numpy as np
 from PIL import Image, ExifTags
 
-from sam_workflows.utils import watermark
+from workflows.utils import watermark
 from .exceptions import ConvertError
 
 

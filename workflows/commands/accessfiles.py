@@ -6,9 +6,9 @@ from os import environ as env
 from typing import List, Dict, Union
 from pathlib import Path
 
-import sam_workflows.converters as converters
-from sam_workflows.cloud import blobstore, blobstore2
-from sam_workflows.utils import fileio
+import workflows.converters as converters
+from workflows.cloud import blobstore, blobstore2
+from workflows.utils import fileio
 
 
 async def generate_sam_access_files(
@@ -35,18 +35,22 @@ async def generate_sam_access_files(
     overwrite: bool
         Overwrite existing files in both local storage and Azure. Defaults to
         False
+    dryrun: bool
+        Fetch and save files and csv from local 'Downloads' folder. Defaults to
+        False
     """
 
     ################
     # Load envvars #
     ################
     if dryrun:
-        ACCESS_PATH = Path.home() / "Downloads" / "workflow_accessfiles"
         MASTER_PATH = Path.home() / "Downloads" / "workflow_masterfiles"
+        ACCESS_PATH = Path.home() / "Downloads" / "workflow_accessfiles"
 
-    # If run from an administrative PC
+    # Normal run from an administrative PC
     # OneDrive-folder with access-files, M-drive-folder with master-files
     elif env.get("OneDrive"):
+        MASTER_PATH = Path(env["M_DRIVE_MASTER_PATH"])
         ACCESS_PATH = (
             Path.home()
             / "Aarhus kommune"
@@ -54,7 +58,6 @@ async def generate_sam_access_files(
             / "_DIGITALT_ARKIV"
             / env["SAM_ACCESS_DIR"]
         )
-        MASTER_PATH = Path(env["M_DRIVE_MASTER_PATH"])
 
     else:
         raise Exception(
@@ -76,21 +79,21 @@ async def generate_sam_access_files(
     IMAGE_FORMATS = env["SAM_IMAGE_FORMATS"].split(" ")
     VIDEO_FORMATS = env["SAM_VIDEO_FORMATS"].split(" ")
 
-    ##########################
-    # Load csv-file from SAM #
-    ##########################
+    # Load csv-file from SAM
     files: List[Dict] = fileio.load_csv_from_sam(csv_in)
     files_count: int = len(files)
+    print(f"Csv-file loaded. {files_count} files to process.", flush=True)
+
+    # Initialize vars
     convert_errors: int = 0
     upload_errors: int = 0
     convert_skipped: int = 0
     upload_skipped: int = 0
     output: List[Dict] = []
-    print(f"Csv-file loaded. {files_count} files to process.", flush=True)
 
     # Generate access-files
     for idx, row in enumerate(files, start=1):
-        # vars
+        # Initialize vars
         file_id: str = row["uniqueID"]
         data = json.loads(row["oasDataJsonEncoded"])
         legal_status: str = data.get("other_restrictions", "4")
@@ -100,6 +103,13 @@ async def generate_sam_access_files(
         Path(ACCESS_PATH / file_id).mkdir(exist_ok=True)
         filedata: Dict[str, Union[str, Path]] = {"oasid": file_id}
         thumbs: List[Path] = []
+
+        # Initial output
+        print(f"No_watermark: {no_watermark}", flush=True)
+        print(f"Local: {local}", flush=True)
+        print(f"Overwrite: {overwrite}", flush=True)
+        print(f"Dryrun: {dryrun}", flush=True)
+
         print(f"Processing {idx} of {files_count}: {filename}", flush=True)
 
         # Check rights
@@ -286,9 +296,7 @@ async def generate_sam_access_files(
             # else:
             #     dest_dir = dest_dir / env["ACASTORAGE_CONTAINER"] / file_id
 
-            container: str = "sam-access"
-            if dryrun:
-                container = "test"
+            container: str = "test" if dryrun else "sam-access"
 
             keys: List = []
             if filedata["record_type"] == "web_document":

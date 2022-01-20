@@ -33,7 +33,7 @@ MANIFEST
 *.spec
 
 # Allow
-!sam_workflows.spec
+!workflows.spec
 
 # Unit test / coverage reports
 htmlcov/

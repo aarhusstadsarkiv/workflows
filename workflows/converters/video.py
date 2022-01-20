@@ -2,10 +2,10 @@ from pathlib import Path
 from os import environ as env
 from typing import List, Dict
 
-from sam_workflows.utils import subprocess, watermark
+from workflows.utils import subprocess, watermark
 
 
-CMD_PATH = Path.home() / ".sam_workflows" / "bin" / "ffmpeg.exe"
+CMD_PATH = Path.home() / ".workflows" / "bin" / "ffmpeg.exe"
 
 
 class ConvertError(Exception):

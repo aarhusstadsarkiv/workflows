@@ -1,17 +1,18 @@
 [tool.poetry]
-name = "sam_workflows"
+name = "workflows"
 version = "0.6.3"
 description = "Workflows for SAM used at Aarhus City Archives"
-authors = ["Claus Juhl Knudsen <cjk@aarhus.dk>", "Nina Jensen <jnik@aarhus.dk>"]
+authors = ["Claus Juhl Knudsen <cjk@aarhus.dk>"]
 maintainers = ["Aarhus Stadsarkiv <stadsarkiv@aarhus.dk>"]
 license = "GPL-3.0"
 readme = "README.md"
 homepage = "https://www.aarhusstadsarkiv.dk/"
-packages = [
-    { include = "sam_workflows" }
-]
+# packages = [
+#     { include = "workflows" }
+# ]
 
 [tool.poetry.dependencies]
+# workflows = { path = "./workflows/", develop = true }
 python = "^3.9"
 gooey = "^1"
 pyinstaller = "^4.3"
@@ -27,9 +28,12 @@ mypy = "*"
 flake8 = "*"
 black = "*"
 
+# [tool.poetry.scripts]
+# workflows = "workflows.cli:main"
+
 [tool.black]
 line-length = 79
 
 [build-system]
 requires = ["poetry>=1.11"]
-build-backend = "poetry.masonry.api"
+build-backend = "poetry.core.masonry.api"

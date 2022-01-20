@@ -5,7 +5,7 @@ from typing import List, Dict
 import fitz
 from PIL import Image
 
-from sam_workflows.utils import watermark
+from workflows.utils import watermark
 
 
 class ConvertError(Exception):

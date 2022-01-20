@@ -7,8 +7,8 @@ from typing import List
 
 from gooey import Gooey, GooeyParser
 
-from sam_workflows.commands import accessfiles, search
-from sam_workflows.config import config
+from workflows.commands import accessfiles, search
+from workflows.config import config
 
 
 utf8_stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
@@ -24,7 +24,7 @@ if sys.stderr.encoding != "UTF-8":
 
 
 @Gooey(
-    program_name=f"ACA Workflows, version {version('sam_workflows')}",
+    program_name=f"ACA Workflows, version {version('workflows')}",
     program_description="Værktøj til at arbejde med forskellige workflows",
     navigation="SIDEBAR",
     sidebar_title="Workflows",
