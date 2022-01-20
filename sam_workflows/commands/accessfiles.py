@@ -99,7 +99,7 @@ async def generate_sam_access_files(
         out_dir = ACCESS_PATH / file_id
         Path(ACCESS_PATH / file_id).mkdir(exist_ok=True)
         filedata: Dict[str, Union[str, Path]] = {"oasid": file_id}
-
+        thumbs: List[Path] = []
         print(f"Processing {idx} of {files_count}: {filename}", flush=True)
 
         # Check rights
@@ -132,7 +132,7 @@ async def generate_sam_access_files(
                 # copy master-pdf to relevant sub-access-dir
                 shutil.copy2(filepath, out_dir / f"{file_id}_c.pdf")
                 # thumbnails
-                thumbs: List[Path] = converters.pdf_thumbnails(
+                thumbs = converters.pdf_thumbnails(
                     filepath,
                     out_dir,
                     no_watermark=no_watermark,
@@ -167,7 +167,7 @@ async def generate_sam_access_files(
             # generate thumbnails
             try:
                 print("Generating thumbs from video...", flush=True)
-                thumbs: List[Path] = converters.video_thumbnails(
+                thumbs = converters.video_thumbnails(
                     filepath,
                     out_dir,
                     no_watermark=no_watermark,
@@ -234,7 +234,7 @@ async def generate_sam_access_files(
 
         elif filepath.suffix in IMAGE_FORMATS:
             try:
-                thumbs: List[Path] = converters.image_thumbnails(
+                thumbs = converters.image_thumbnails(
                     filepath,
                     out_dir,
                     thumbnails=[
