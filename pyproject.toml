@@ -13,18 +13,23 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-gooey = "^1.0.8"
+gooey = "^1"
 pyinstaller = "^4.3"
-pymupdf = "^1.18.12"
+pymupdf = "^1.19"
 azure-identity = "^1.5.0"
 azure-keyvault-secrets = "^4.2.0"
 azure-storage-blob = "^12.8.1"
-aiohttp = "^3.7.4"
-toml = "^0.10.2"
+aiohttp = "^3.7"
+toml = "*"
+
+[tool.poetry.dependencies]
+mypy = "*"
+flake8 = "*"
+black = "*"
 
 [tool.black]
 line-length = 79
 
 [build-system]
-requires = ["poetry>=0.12"]
+requires = ["poetry>=1.11"]
 build-backend = "poetry.masonry.api"
