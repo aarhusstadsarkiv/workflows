@@ -22,9 +22,11 @@ if sys.stderr.encoding != "UTF-8":
 # nonbuffered_stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 # sys.stdout = nonbuffered_stdout
 
+# first line in @Gooey()
+# program_name=f"ACA Workflows, version {version('workflows')}",
 
 @Gooey(
-    program_name=f"ACA Workflows, version {version('workflows')}",
+    program_name="ACA Workflows, version 0.6.3",
     program_description="Værktøj til at arbejde med forskellige workflows",
     navigation="SIDEBAR",
     sidebar_title="Workflows",
@@ -51,7 +53,7 @@ async def main() -> None:
     subs = cli.add_subparsers(
         title="commands",
         dest="command",
-        metavar="",  # mute default metavar-output {list of commands}
+        # metavar="",  # mute default metavar-output {list of commands}
     )
 
     # -------------------------------------------------------------------------
@@ -126,7 +128,7 @@ async def main() -> None:
     # Arguments
     search_backup.add_argument(
         "backup_file",
-        metavar="Backup-fil",
+        # metavar="Backup-fil",
         help="Sti til backup-filen",
         widget="FileChooser",
         type=Path,
@@ -139,7 +141,7 @@ async def main() -> None:
     )
     search_backup.add_argument(
         "search_result",
-        metavar="Id-list",
+        # metavar="Id-list",
         help="Sti til filen med søgereultatet",
         widget="FileSaver",
         type=Path,

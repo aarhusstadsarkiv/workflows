@@ -4,7 +4,7 @@ import toml
 from typing import Dict
 from pathlib import Path
 
-CONFIG_DIR = Path.home() / ".workflows"
+CONFIG_DIR = Path.home() / ".aca" / "workflows"
 JSON_FILE = "config.json"
 TOML_FILE = "config.toml"
 

@@ -1,6 +1,7 @@
 import json
 import shutil
 import time
+import sys
 
 from os import environ as env
 from typing import List, Dict, Union
@@ -39,6 +40,13 @@ async def generate_sam_access_files(
         Fetch and save files and csv from local 'Downloads' folder. Defaults to
         False
     """
+
+    # Testing
+    print(f"No_watermark: {no_watermark}", flush=True)
+    print(f"Local: {local}", flush=True)
+    print(f"Overwrite: {overwrite}", flush=True)
+    print(f"Dryrun: {dryrun}", flush=True)
+    sys.exit(0)
 
     ################
     # Load envvars #
