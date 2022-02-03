@@ -1,12 +1,10 @@
 import json
-from re import T
 import shutil
 import time
 
 from os import environ as env
 from typing import List, Dict, Union
 from pathlib import Path
-from xmlrpc.client import TRANSPORT_ERROR
 
 import workflows.converters as converters
 from workflows.cloud import blobstore, blobstore2
@@ -321,7 +319,7 @@ async def generate_sam_access_files(
                 await blobstore2.upload_files(
                     paths, container, subpath=file_id, overwrite=overwrite
                 )
-                
+
                 # update filedata with online paths
                 # no urlencode necessary due to int-based filenames
                 for k in keys:
@@ -343,7 +341,6 @@ async def generate_sam_access_files(
             except Exception as e:
                 print(f"Failed to upload {filename}: {e}", flush=True)
                 upload_errors += 1
-
 
         output.append(filedata)
 

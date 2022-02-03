@@ -1,7 +1,7 @@
 import codecs
 import sys
 import asyncio
-from importlib.metadata import version
+# from importlib.metadata import version
 from pathlib import Path
 from typing import List
 
@@ -24,6 +24,7 @@ if sys.stderr.encoding != "UTF-8":
 
 # first line in @Gooey()
 # program_name=f"ACA Workflows, version {version('workflows')}",
+
 
 @Gooey(
     program_name="ACA Workflows, version 0.6.3",
