@@ -39,7 +39,7 @@ def load_toml_configuration() -> Dict:
         raise FileNotFoundError("Konfigurationsfilen blev ikke fundet.")
 
     config_dict = toml.load(conf)
-    config_dict["app_dir"] = ".workflows"
+    config_dict["app_dir"] = ".aca/workflows"
     return dict(config_dict)
 
 
@@ -61,4 +61,4 @@ def load_json_configuration() -> None:
             for k, v in config.items():
                 if k.lower() in CONFIG_KEYS:
                     os.environ[k.upper()] = str(v)
-            os.environ["APP_DIR"] = ".workflows"
+            os.environ["APP_DIR"] = ".aca/workflows"

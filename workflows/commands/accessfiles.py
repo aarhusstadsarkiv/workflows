@@ -1,11 +1,12 @@
 import json
+from re import T
 import shutil
 import time
-import sys
 
 from os import environ as env
 from typing import List, Dict, Union
 from pathlib import Path
+from xmlrpc.client import TRANSPORT_ERROR
 
 import workflows.converters as converters
 from workflows.cloud import blobstore, blobstore2
@@ -42,11 +43,12 @@ async def generate_sam_access_files(
     """
 
     # Testing
-    print(f"No_watermark: {no_watermark}", flush=True)
-    print(f"Local: {local}", flush=True)
-    print(f"Overwrite: {overwrite}", flush=True)
-    print(f"Dryrun: {dryrun}", flush=True)
-    sys.exit(0)
+    print("Genererer accesfiler med følgenede indstillinger:", flush=True)
+    print(f"Undlad vandmærker: {no_watermark}", flush=True)
+    print(f"Undlad aat uploade filer: {local}", flush=True)
+    print(f"Overskriv eksisterende accessfiler: {overwrite}", flush=True)
+    print(f"Kør test run: {dryrun}", flush=True)
+    print("", flush=True)
 
     ################
     # Load envvars #
@@ -111,12 +113,6 @@ async def generate_sam_access_files(
         Path(ACCESS_PATH / file_id).mkdir(exist_ok=True)
         filedata: Dict[str, Union[str, Path]] = {"oasid": file_id}
         thumbs: List[Path] = []
-
-        # Initial output
-        print(f"No_watermark: {no_watermark}", flush=True)
-        print(f"Local: {local}", flush=True)
-        print(f"Overwrite: {overwrite}", flush=True)
-        print(f"Dryrun: {dryrun}", flush=True)
 
         print(f"Processing {idx} of {files_count}: {filename}", flush=True)
 
@@ -318,16 +314,26 @@ async def generate_sam_access_files(
             for k, v in filedata.items():
                 if k in keys:
                     paths.append({"filepath": v})
-            print(str(paths[0]), flush=True)
+
             try:
+                print(f"Uploading accessfiles for {filename}...", flush=True)
                 # await blobstore.upload_files(paths, overwrite=overwrite)
                 await blobstore2.upload_files(
                     paths, container, subpath=file_id, overwrite=overwrite
                 )
+                
+                # update filedata with online paths
+                # no urlencode necessary due to int-based filenames
+                for k in keys:
+                    name: str = Path(filedata[k]).name
+                    filedata[
+                        k
+                    ] = f"""{env['ACASTORAGE_ROOT']}/
+                        {env['ACASTORAGE_CONTAINER']}/{file_id}/{name}"""
             except blobstore.UploadError as e:
                 if not overwrite and "BlobAlreadyExists" in str(e):
                     print(
-                        f"Skipping upload.{filename} already exists",
+                        f"Aborting upload.{filename} already exists",
                         flush=True,
                     )
                     upload_skipped += 1
@@ -337,19 +343,7 @@ async def generate_sam_access_files(
             except Exception as e:
                 print(f"Failed to upload {filename}: {e}", flush=True)
                 upload_errors += 1
-            else:
-                print(f"Uploaded files for {filename}", flush=True)
-                # update filedata with online paths
-                # no urlencode necessary due to int-based filenames
-                for k in keys:
-                    name: str = Path(filedata[k]).name
-                    filedata[
-                        k
-                    ] = f"""{env['ACASTORAGE_ROOT']}/
-                        {env['ACASTORAGE_CONTAINER']}/{file_id}/{name}"""
 
-                    # if type(filedata.get(k)) == "Path":
-                    #     filedata[k] = dest_dir / Path(filedata[k]).name
 
         output.append(filedata)
 

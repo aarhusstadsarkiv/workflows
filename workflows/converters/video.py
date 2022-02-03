@@ -5,7 +5,7 @@ from typing import List, Dict
 from workflows.utils import subprocess, watermark
 
 
-CMD_PATH = Path.home() / ".workflows" / "bin" / "ffmpeg.exe"
+CMD_PATH = Path.home() / ".aca" / "workflows" / "bin" / "ffmpeg.exe"
 
 
 class ConvertError(Exception):
