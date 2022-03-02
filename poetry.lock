@@ -81,11 +81,11 @@ six = ">=1.11.0"
 
 [[package]]
 name = "azure-identity"
-version = "1.7.1"
+version = "1.8.0"
 description = "Microsoft Azure Identity Library for Python"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [package.dependencies]
 azure-core = ">=1.11.0,<2.0.0"
@@ -671,7 +671,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "73b960447f89e16df72d9560233dfcb6a975dc155192c75cb0cbff4a2d74df82"
+content-hash = "b8374ae1c93cfefe134b400a51f08dd416edebcc38d16048c25ad94754781fc0"
 
 [metadata.files]
 aiohttp = [
@@ -773,8 +773,8 @@ azure-core = [
     {file = "azure_core-1.21.1-py2.py3-none-any.whl", hash = "sha256:3d70e9ec64de92dfae330c15bc69085caceb2d83813ef6c01cc45326f2a4be83"},
 ]
 azure-identity = [
-    {file = "azure-identity-1.7.1.zip", hash = "sha256:7f22cd0c7a9b92ed297dd67ae79d9bb9a866e404061c02cec709ad10c4c88e19"},
-    {file = "azure_identity-1.7.1-py2.py3-none-any.whl", hash = "sha256:454e16ed1152b4fd3fb463f4b4e2f7a3fc3a862b0ca28010bff6d5c6b2b0c50f"},
+    {file = "azure-identity-1.8.0.zip", hash = "sha256:020ff0e47157852e4aac8a3adb06841827147f27a94cbe74a904425d8e62d93c"},
+    {file = "azure_identity-1.8.0-py3-none-any.whl", hash = "sha256:8d87aff09b8dabe3c99bb934798dcdeb2f2d49614ecc4f0425cc888faafd64ae"},
 ]
 azure-keyvault-secrets = [
     {file = "azure-keyvault-secrets-4.3.0.zip", hash = "sha256:26279ba3a6c727deba1fb61f549496867baddffbf062bd579d6fd2bc04e95276"},
