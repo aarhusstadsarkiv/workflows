@@ -109,14 +109,14 @@ msrest = ">=0.6.21"
 
 [[package]]
 name = "azure-storage-blob"
-version = "12.9.0"
+version = "12.10.0"
 description = "Microsoft Azure Blob Storage Client Library for Python"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [package.dependencies]
-azure-core = ">=1.10.0,<2.0.0"
+azure-core = ">=1.15.0,<2.0.0"
 cryptography = ">=2.1.4"
 msrest = ">=0.6.21"
 
@@ -671,7 +671,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "73b960447f89e16df72d9560233dfcb6a975dc155192c75cb0cbff4a2d74df82"
+content-hash = "090e43fff7f82006cf5cf98811f5359e648bd6fb17a32d6ac826c952d404d767"
 
 [metadata.files]
 aiohttp = [
@@ -781,8 +781,8 @@ azure-keyvault-secrets = [
     {file = "azure_keyvault_secrets-4.3.0-py2.py3-none-any.whl", hash = "sha256:fa4d780565520534939a4b1b4e87908f0c88b4423f6005c7a381ac01d6b32233"},
 ]
 azure-storage-blob = [
-    {file = "azure-storage-blob-12.9.0.zip", hash = "sha256:cff66a115c73c90e496c8c8b3026898a3ce64100840276e9245434e28a864225"},
-    {file = "azure_storage_blob-12.9.0-py2.py3-none-any.whl", hash = "sha256:859195b4850dcfe77ffafbe53500abb74b001e52e77fe6d9492fa73639a22127"},
+    {file = "azure-storage-blob-12.10.0.zip", hash = "sha256:3c7dc2c93e7ff2a731acd66a36a1f0a6266072b4154deba4894dab891285ea3a"},
+    {file = "azure_storage_blob-12.10.0-py3-none-any.whl", hash = "sha256:a70995c4f9310eb704594f30505d1499286b4caac5543a2ebfe84431c4a38b0b"},
 ]
 black = [
     {file = "black-22.1.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:1297c63b9e1b96a3d0da2d85d11cd9bf8664251fd69ddac068b98dc4f34f73b6"},
