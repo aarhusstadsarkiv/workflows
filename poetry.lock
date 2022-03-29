@@ -96,15 +96,15 @@ six = ">=1.12.0"
 
 [[package]]
 name = "azure-keyvault-secrets"
-version = "4.3.0"
+version = "4.4.0"
 description = "Microsoft Azure Key Vault Secrets Client Library for Python"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [package.dependencies]
 azure-common = ">=1.1,<2.0"
-azure-core = ">=1.7.0,<2.0.0"
+azure-core = ">=1.20.0,<2.0.0"
 msrest = ">=0.6.21"
 
 [[package]]
@@ -671,7 +671,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "73b960447f89e16df72d9560233dfcb6a975dc155192c75cb0cbff4a2d74df82"
+content-hash = "22b9106e2f3875f2edd9492c014f2544a32ce16dfb4b5c41b08fd1380f127903"
 
 [metadata.files]
 aiohttp = [
@@ -777,8 +777,8 @@ azure-identity = [
     {file = "azure_identity-1.7.1-py2.py3-none-any.whl", hash = "sha256:454e16ed1152b4fd3fb463f4b4e2f7a3fc3a862b0ca28010bff6d5c6b2b0c50f"},
 ]
 azure-keyvault-secrets = [
-    {file = "azure-keyvault-secrets-4.3.0.zip", hash = "sha256:26279ba3a6c727deba1fb61f549496867baddffbf062bd579d6fd2bc04e95276"},
-    {file = "azure_keyvault_secrets-4.3.0-py2.py3-none-any.whl", hash = "sha256:fa4d780565520534939a4b1b4e87908f0c88b4423f6005c7a381ac01d6b32233"},
+    {file = "azure-keyvault-secrets-4.4.0.zip", hash = "sha256:c0b732db9de855d9c39766067cf43e2f66cdbb28b859f03c787e33924cca82d7"},
+    {file = "azure_keyvault_secrets-4.4.0-py3-none-any.whl", hash = "sha256:7143c6e83398a7aba048e44413f7f26b6ce43505afb3e3c89ba62b25f06dd729"},
 ]
 azure-storage-blob = [
     {file = "azure-storage-blob-12.9.0.zip", hash = "sha256:cff66a115c73c90e496c8c8b3026898a3ce64100840276e9245434e28a864225"},
