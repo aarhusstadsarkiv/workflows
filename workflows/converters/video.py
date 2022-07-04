@@ -2,14 +2,11 @@ from pathlib import Path
 from os import environ as env
 from typing import List, Dict
 
-from workflows.utils import subprocess, watermark
+from workflows.utils import sp, watermark
+from .exceptions import ConvertError
 
 
 CMD_PATH = Path.home() / ".aca" / "workflows" / "bin" / "ffmpeg.exe"
-
-
-class ConvertError(Exception):
-    """Implements error to raise when conversion fails."""
 
 
 def thumbnails(
@@ -21,7 +18,7 @@ def thumbnails(
     ],
     no_watermark: bool = False,
     overwrite: bool = False,
-    extension: str = ".jpg",
+    extension: str = ".png",
     offset: int = 12,
 ) -> List[Path]:
 
@@ -65,7 +62,7 @@ def thumbnails(
             out_file,
         ]
 
-        subprocess.run(cmd, timeout=30)
+        sp.run(cmd, timeout=30)
 
         if not no_watermark:
             if size > int(env["SAM_WATERMARK_WIDTH"]):
@@ -114,8 +111,14 @@ def convert(
         "aac",
         out_file,
     ]
-
-    subprocess.run(cmd, timeout)
+    try:
+        sp.run(cmd, timeout)
+    except sp.ProcessError as e:
+        raise ConvertError(f"ProcessError: {e}")
+    except sp.TimeoutError as e:
+        raise ConvertError(f"TimeoutError: {e}")
+    except Exception as e:
+        raise ConvertError(f"Unspecified error: {e}")
 
 
 # representations = [

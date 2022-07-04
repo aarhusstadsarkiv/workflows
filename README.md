@@ -14,3 +14,4 @@ python workflows/cli.py search C:/Users/azkb075/Downloads/latest_oas_backup.csv 
 
 ## Kompilering
 Se docs: https://aarhusstadsarkiv.github.io/acadocs/development/pyinstaller.html
+

@@ -1,5 +1,4 @@
 import subprocess
-from subprocess import CalledProcessError
 from typing import List
 
 
@@ -14,7 +13,7 @@ class TimeoutError(Exception):
 def run(cmd: List, timeout: int = 10) -> None:
     try:
         subprocess.run(cmd, check=True, capture_output=True, timeout=timeout)
-    except CalledProcessError as error:
+    except subprocess.CalledProcessError as error:
         raise ProcessError(
             f"Process failed with error: {error.stderr.strip().decode()}"
         )

@@ -1,7 +1,8 @@
 import json
 import shutil
-import time
 
+# import time
+from datetime import datetime
 from os import environ as env
 from typing import List, Dict, Union
 from pathlib import Path
@@ -41,11 +42,11 @@ async def generate_sam_access_files(
     """
 
     # Testing
-    print("Genererer accesfiler med følgenede indstillinger:", flush=True)
+    print("Genererer accessfiler med følgenede indstillinger:", flush=True)
     print(f"Undlad vandmærker: {no_watermark}", flush=True)
     print(f"Undlad aat uploade filer: {local}", flush=True)
     print(f"Overskriv eksisterende accessfiler: {overwrite}", flush=True)
-    print(f"Kør test run: {dryrun}", flush=True)
+    print(f"Kør som test run: {dryrun}", flush=True)
     print("", flush=True)
 
     ################
@@ -176,7 +177,38 @@ async def generate_sam_access_files(
             )
 
         elif filepath.suffix in VIDEO_FORMATS:
-            # generate thumbnails
+            # Generate access copy
+            try:
+                record_file = out_dir / f"{file_id}.mp4"
+                # timeout around 700 secs per GB, due to M-drive limitations
+                timeout: int = max(filepath.stat().st_size // 1000000, 120)
+                print(
+                    f"Generating access copy of video "
+                    f"({datetime.now().time()})"
+                    # f"({time.strftime('%H:%M:%S', time())})"
+                    f". Allocated seconds: {timeout}",
+                    flush=True,
+                )
+                converters.video_convert(
+                    filepath, record_file, timeout=timeout, overwrite=overwrite
+                )
+            except FileExistsError:
+                print(
+                    f"Skipping conversion as {filename} already exists",
+                    flush=True,
+                )
+                convert_skipped += 1
+                continue
+            except converters.ConvertError as e:
+                print(f"ConvertError converting video: {e}", flush=True)
+                convert_errors += 1
+                continue
+            except Exception as e:
+                print(f"Unknown error converting video: {e}", flush=True)
+                convert_errors += 1
+                continue
+
+            # if that went well, generate thumbnails
             try:
                 print("Generating thumbs from video...", flush=True)
                 thumbs = converters.video_thumbnails(
@@ -204,33 +236,6 @@ async def generate_sam_access_files(
                     f"Unknown error generating thumbnails from video: {e}",
                     flush=True,
                 )
-                convert_errors += 1
-                continue
-
-            # Generate access copy
-            try:
-                print(
-                    f"Generating access copy of video "
-                    f"({time.strftime('%H:%M:%S', time.localtime())})...",
-                    flush=True,
-                )
-                record_file = out_dir / f"{file_id}.mp4"
-                converters.video_convert(
-                    filepath, record_file, timeout=300, overwrite=overwrite
-                )
-            except FileExistsError:
-                print(
-                    f"Skipping conversion as {filename} already exists",
-                    flush=True,
-                )
-                convert_skipped += 1
-                continue
-            except converters.ConvertError as e:
-                print(f"ConvertError converting video: {e}", flush=True)
-                convert_errors += 1
-                continue
-            except Exception as e:
-                print(f"Unknown error converting video: {e}", flush=True)
                 convert_errors += 1
                 continue
 
@@ -298,6 +303,7 @@ async def generate_sam_access_files(
             # else:
             #     dest_dir = dest_dir / env["ACASTORAGE_CONTAINER"] / file_id
 
+            root: str = env["ACASTORAGE_ROOT"]
             container: str = "test" if dryrun else "sam-access"
 
             keys: List = []
@@ -324,10 +330,8 @@ async def generate_sam_access_files(
                 # no urlencode necessary due to int-based filenames
                 for k in keys:
                     name: str = Path(filedata[k]).name
-                    filedata[
-                        k
-                    ] = f"""{env['ACASTORAGE_ROOT']}/
-                        {env['ACASTORAGE_CONTAINER']}/{file_id}/{name}"""
+                    filedata[k] = f"{root}/{container}/{file_id}/{name}"
+
             except blobstore.UploadError as e:
                 if not overwrite and "BlobAlreadyExists" in str(e):
                     print(
@@ -348,7 +352,7 @@ async def generate_sam_access_files(
     # save to SAM csv-file #
     ########################
     if output:
-        print(f"Finished processing {files_count} files", flush=True)
+        print(f"\nFinished processing {files_count} files", flush=True)
         print(f"{convert_skipped} files were skipped", flush=True)
         print(f"{convert_errors} files failed processing", flush=True)
         print(f"{upload_skipped} files skipped upload", flush=True)
