@@ -16,7 +16,7 @@ multidict = ">=4.5,<7.0"
 yarl = ">=1.0,<2.0"
 
 [package.extras]
-speedups = ["aiodns", "brotli", "cchardet"]
+speedups = ["cchardet", "brotli", "aiodns"]
 
 [[package]]
 name = "aiosignal"
@@ -54,10 +54,10 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.extras]
-dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface", "furo", "sphinx", "sphinx-notfound-page", "pre-commit", "cloudpickle"]
-docs = ["furo", "sphinx", "zope.interface", "sphinx-notfound-page"]
-tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface", "cloudpickle"]
-tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "cloudpickle"]
+tests_no_zope = ["cloudpickle", "pytest-mypy-plugins", "mypy", "six", "pytest (>=4.3.0)", "pympler", "hypothesis", "coverage[toml] (>=5.0.2)"]
+tests = ["cloudpickle", "zope.interface", "pytest-mypy-plugins", "mypy", "six", "pytest (>=4.3.0)", "pympler", "hypothesis", "coverage[toml] (>=5.0.2)"]
+docs = ["sphinx-notfound-page", "zope.interface", "sphinx", "furo"]
+dev = ["cloudpickle", "pre-commit", "sphinx-notfound-page", "sphinx", "furo", "zope.interface", "pytest-mypy-plugins", "mypy", "six", "pytest (>=4.3.0)", "pympler", "hypothesis", "coverage[toml] (>=5.0.2)"]
 
 [[package]]
 name = "azure-common"
@@ -137,10 +137,10 @@ tomli = ">=1.1.0"
 typing-extensions = {version = ">=3.10.0.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
-colorama = ["colorama (>=0.4.3)"]
-d = ["aiohttp (>=3.7.4)"]
-jupyter = ["ipython (>=7.8.0)", "tokenize-rt (>=3.2.0)"]
 uvloop = ["uvloop (>=0.15.2)"]
+jupyter = ["tokenize-rt (>=3.2.0)", "ipython (>=7.8.0)"]
+d = ["aiohttp (>=3.7.4)"]
+colorama = ["colorama (>=0.4.3)"]
 
 [[package]]
 name = "certifi"
@@ -324,8 +324,8 @@ python-versions = "*"
 [package.dependencies]
 msal = ">=0.4.1,<2.0.0"
 portalocker = [
-    {version = ">=1.0,<3", markers = "python_version >= \"3.5\" and platform_system != \"Windows\""},
     {version = ">=1.6,<3", markers = "python_version >= \"3.5\" and platform_system == \"Windows\""},
+    {version = ">=1.0,<3", markers = "python_version >= \"3.5\" and platform_system != \"Windows\""},
 ]
 
 [[package]]
@@ -343,7 +343,7 @@ requests = ">=2.16,<3.0"
 requests-oauthlib = ">=0.5.0"
 
 [package.extras]
-async = ["aiohttp (>=3.0)", "aiodns"]
+async = ["aiodns", "aiohttp (>=3.0)"]
 
 [[package]]
 name = "multidict"
@@ -367,8 +367,8 @@ tomli = ">=1.1.0"
 typing-extensions = ">=3.10"
 
 [package.extras]
-dmypy = ["psutil (>=4.0)"]
 python2 = ["typed-ast (>=1.4.0,<2)"]
+dmypy = ["psutil (>=4.0)"]
 
 [[package]]
 name = "mypy-extensions"
@@ -395,9 +395,9 @@ optional = false
 python-versions = ">=3.6"
 
 [package.extras]
-rsa = ["cryptography (>=3.0.0,<4)"]
+signedtoken = ["pyjwt (>=2.0.0,<3)", "cryptography (>=3.0.0,<4)"]
 signals = ["blinker (>=1.4.0)"]
-signedtoken = ["cryptography (>=3.0.0,<4)", "pyjwt (>=2.0.0,<3)"]
+rsa = ["cryptography (>=3.0.0,<4)"]
 
 [[package]]
 name = "pathspec"
@@ -435,8 +435,8 @@ optional = false
 python-versions = ">=3.7"
 
 [package.extras]
-docs = ["Sphinx (>=4)", "furo (>=2021.7.5b38)", "proselint (>=0.10.2)", "sphinx-autodoc-typehints (>=1.12)"]
-test = ["appdirs (==1.4.4)", "pytest (>=6)", "pytest-cov (>=2.7)", "pytest-mock (>=3.6)"]
+test = ["pytest-mock (>=3.6)", "pytest-cov (>=2.7)", "pytest (>=6)", "appdirs (==1.4.4)"]
+docs = ["sphinx-autodoc-typehints (>=1.12)", "proselint (>=0.10.2)", "furo (>=2021.7.5b38)", "Sphinx (>=4)"]
 
 [[package]]
 name = "portalocker"
@@ -463,7 +463,7 @@ optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [package.extras]
-test = ["ipaddress", "mock", "unittest2", "enum34", "pywin32", "wmi"]
+test = ["wmi", "pywin32", "enum34", "unittest2", "mock", "ipaddress"]
 
 [[package]]
 name = "pycodestyle"
@@ -513,8 +513,8 @@ pyinstaller-hooks-contrib = ">=2020.6"
 pywin32-ctypes = {version = ">=0.2.0", markers = "sys_platform == \"win32\""}
 
 [package.extras]
+hook_testing = ["psutil", "execnet (>=1.5.0)", "pytest (>=2.7.3)"]
 encryption = ["tinyaes (>=1.0.0)"]
-hook_testing = ["pytest (>=2.7.3)", "execnet (>=1.5.0)", "psutil"]
 
 [[package]]
 name = "pyinstaller-hooks-contrib"
@@ -526,7 +526,7 @@ python-versions = "*"
 
 [[package]]
 name = "pyjwt"
-version = "2.3.0"
+version = "2.4.0"
 description = "JSON Web Token implementation in Python"
 category = "main"
 optional = false
@@ -536,18 +536,18 @@ python-versions = ">=3.6"
 cryptography = {version = ">=3.3.1", optional = true, markers = "extra == \"crypto\""}
 
 [package.extras]
+tests = ["coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)"]
+docs = ["zope.interface", "sphinx-rtd-theme", "sphinx"]
+dev = ["pre-commit", "mypy", "coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)", "cryptography (>=3.3.1)", "zope.interface", "sphinx-rtd-theme", "sphinx"]
 crypto = ["cryptography (>=3.3.1)"]
-dev = ["sphinx", "sphinx-rtd-theme", "zope.interface", "cryptography (>=3.3.1)", "pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)", "mypy", "pre-commit"]
-docs = ["sphinx", "sphinx-rtd-theme", "zope.interface"]
-tests = ["pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)"]
 
 [[package]]
 name = "pymupdf"
-version = "1.19.4"
+version = "1.20.2"
 description = "Python bindings for the PDF toolkit and renderer MuPDF"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [[package]]
 name = "pywin32"
@@ -580,8 +580,8 @@ idna = {version = ">=2.5,<4", markers = "python_version >= \"3\""}
 urllib3 = ">=1.21.1,<1.27"
 
 [package.extras]
-socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
 use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
+socks = ["win-inet-pton", "PySocks (>=1.5.6,!=1.5.7)"]
 
 [[package]]
 name = "requests-oauthlib"
@@ -639,9 +639,9 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 
 [package.extras]
-brotli = ["brotlipy (>=0.6.0)"]
-secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
 socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
+secure = ["ipaddress", "certifi", "idna (>=2.0.0)", "cryptography (>=1.3.4)", "pyOpenSSL (>=0.14)"]
+brotli = ["brotlipy (>=0.6.0)"]
 
 [[package]]
 name = "wxpython"
@@ -671,7 +671,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "73b960447f89e16df72d9560233dfcb6a975dc155192c75cb0cbff4a2d74df82"
+content-hash = "6e1ea076637e0363faccd8ebbb04fca970e5763c32648edfe1204a6329a7e85b"
 
 [metadata.files]
 aiohttp = [
@@ -1242,29 +1242,31 @@ pyinstaller-hooks-contrib = [
     {file = "pyinstaller_hooks_contrib-2021.5-py2.py3-none-any.whl", hash = "sha256:e658281cbf90570d9bc6a06f4b8f64c28d1076c722f6fb80c02a863bcbb8e7cd"},
 ]
 pyjwt = [
-    {file = "PyJWT-2.3.0-py3-none-any.whl", hash = "sha256:e0c4bb8d9f0af0c7f5b1ec4c5036309617d03d56932877f2f7a0beeb5318322f"},
-    {file = "PyJWT-2.3.0.tar.gz", hash = "sha256:b888b4d56f06f6dcd777210c334e69c737be74755d3e5e9ee3fe67dc18a0ee41"},
+    {file = "PyJWT-2.4.0-py3-none-any.whl", hash = "sha256:72d1d253f32dbd4f5c88eaf1fdc62f3a19f676ccbadb9dbc5d07e951b2b26daf"},
+    {file = "PyJWT-2.4.0.tar.gz", hash = "sha256:d42908208c699b3b973cbeb01a969ba6a96c821eefb1c5bfe4c390c01d67abba"},
 ]
 pymupdf = [
-    {file = "PyMuPDF-1.19.4-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:656a7bec93bc89feabb4c34d3c7c8ef18335837870a2ae4b4bcb91eff9d6ce10"},
-    {file = "PyMuPDF-1.19.4-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c9ee5f4f413ac3675835426ee182aa7c68774c11ce9f9f61f65f7f34d810ce38"},
-    {file = "PyMuPDF-1.19.4-cp310-cp310-win32.whl", hash = "sha256:65647d992bcc77b52d808c40a08b6b98a6012371ffef9c764a34bb0580b3abcf"},
-    {file = "PyMuPDF-1.19.4-cp310-cp310-win_amd64.whl", hash = "sha256:03878ff8bb343516e9580930c233105e0a69bbeaebddcb3dcc281ffb8c0944ca"},
-    {file = "PyMuPDF-1.19.4-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:196cfb75eb17271b62f59eacc769710e55c5a4277c455520851db0db9c3b381b"},
-    {file = "PyMuPDF-1.19.4-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6ee61379f001f7bc892afefae886d07d49320d9641eeeb40dcc936903addeb4d"},
-    {file = "PyMuPDF-1.19.4-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:9abd78c614455d0695fbcff693a85cc906b8fcbaa24fb576182b20a87db2eddd"},
-    {file = "PyMuPDF-1.19.4-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:42c9188e39ee33b207a810d1f9ff635a8247d9e64b8af432ef36b9696763f8eb"},
-    {file = "PyMuPDF-1.19.4-cp37-cp37m-win32.whl", hash = "sha256:eeccac87ab19127ef6f15caa3b12fdf02e944864816844b456b5856582056873"},
-    {file = "PyMuPDF-1.19.4-cp37-cp37m-win_amd64.whl", hash = "sha256:910d4159698adcd7783a5fcde17079bb295abc2d3d604ccb8ed257a24b4e7dbf"},
-    {file = "PyMuPDF-1.19.4-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:5046b479a44c55423df0c746cd4d858bd244c85cdfaf46e7fd4298ba7f586365"},
-    {file = "PyMuPDF-1.19.4-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b33c5a68a4bcfe8f948127aad61f25e172d6851993235f46cc395b2038c2eb84"},
-    {file = "PyMuPDF-1.19.4-cp38-cp38-win32.whl", hash = "sha256:4e19dfb82d247027757fb75d5fb73d8ce430930a0c7d2f492913aefd1875345c"},
-    {file = "PyMuPDF-1.19.4-cp38-cp38-win_amd64.whl", hash = "sha256:17f1b8ff934d02ffc3dfb6af4ce0d1545a722eff180aa675e17ff7ac40b731f9"},
-    {file = "PyMuPDF-1.19.4-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:c126efda315be900ecf194b3d04b93cc211db8fa6c3b31af482d6c5aac2c5b66"},
-    {file = "PyMuPDF-1.19.4-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:aca2f2f94bda157a0365230fe11dcf1b9f6ab592943cc7534d92389f1058cd86"},
-    {file = "PyMuPDF-1.19.4-cp39-cp39-win32.whl", hash = "sha256:f140acdecdc3a6cbc6987eda3f1df9a5c8d85b0c1044f4132fde4813acbd905a"},
-    {file = "PyMuPDF-1.19.4-cp39-cp39-win_amd64.whl", hash = "sha256:5b347655a948c6a9d2d66a0d1e651f9888ce6e2915ee6a2e60498a0c735b5330"},
-    {file = "PyMuPDF-1.19.4.tar.gz", hash = "sha256:125783986da87fe1a5372d621e90fa49e454454af0b3d0f894858c146c712f81"},
+    {file = "PyMuPDF-1.20.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:18077adb58b7004bb396f952d27c89c6bf5dc521b4056ba4f95772c7e900a57a"},
+    {file = "PyMuPDF-1.20.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2a82438b44723e7dcb47d156cf0299fcf3d09e970ee469081c3f9d79b8c40ce3"},
+    {file = "PyMuPDF-1.20.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:73dbf73ac1c5cbf99dec903c98bc18eb30c8fe1d703ec5531296a5308700f001"},
+    {file = "PyMuPDF-1.20.2-cp310-cp310-win32.whl", hash = "sha256:1df02cca0fbb64c3dce4d6094f9ad91991d768ebe0c0efdee85294c7959db7c3"},
+    {file = "PyMuPDF-1.20.2-cp310-cp310-win_amd64.whl", hash = "sha256:8074f005d247bbb6b43c0c1eba2a316d97cbf8345b456d37ee97c9cd2a7398cc"},
+    {file = "PyMuPDF-1.20.2-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:4045847e830598269be448bda21dc8ea332fce974c4cf3b1b6ca0d6231f2de0d"},
+    {file = "PyMuPDF-1.20.2-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5824103cf2ea3b492cb5b3c66ab16d61db65363ebdfb7ed28a2af93cb48dee4f"},
+    {file = "PyMuPDF-1.20.2-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6c50b8408dbbb921cfce7145ac0ae0e150955f9b2deed8cdddf03e830ca1e6a2"},
+    {file = "PyMuPDF-1.20.2-cp37-cp37m-win32.whl", hash = "sha256:1bd2004a64f110dac255a86ec45245f17e84d81cf6f8f67608e45455cd1b5697"},
+    {file = "PyMuPDF-1.20.2-cp37-cp37m-win_amd64.whl", hash = "sha256:acadb4e61776cc2d6dd0196675db324411fccd64e8d68399dc8e6ca2cb943f49"},
+    {file = "PyMuPDF-1.20.2-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:61b07f6c389c690f28c79830a14c294bbc1679bd31edc4b6a42511c415434cbd"},
+    {file = "PyMuPDF-1.20.2-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:7d29a7db4b15dcb7632bb6afa197f12f95244ab15f7c73ccb219e3f7df4e79fa"},
+    {file = "PyMuPDF-1.20.2-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9f2897fb4160b5fe2f80739ca9e101677e5694b5dcfda8026b0eb0b7e2db5615"},
+    {file = "PyMuPDF-1.20.2-cp38-cp38-win32.whl", hash = "sha256:2af5b16d2f7f78a8800906e30d650dbdbf38209e988e0796b57d1a938a59209a"},
+    {file = "PyMuPDF-1.20.2-cp38-cp38-win_amd64.whl", hash = "sha256:071732c5139150f1f7ba95d25c0b69919dee8494adc88a914872da5272b974d7"},
+    {file = "PyMuPDF-1.20.2-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:d5afa38414c3cf10daaa627f3fc7e8653efbbc2e5f58335a37e743a5c52698d0"},
+    {file = "PyMuPDF-1.20.2-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:bddf7d617fba1b345d9aee8d533888e340ffa3f784910453608bc5541089023c"},
+    {file = "PyMuPDF-1.20.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5c0ee0df665849f8686981fcc8f836afac2302bb6a7aaf330e73fd5694017d9d"},
+    {file = "PyMuPDF-1.20.2-cp39-cp39-win32.whl", hash = "sha256:e7214cf1870238d39ca008eda7c612b1db7228d7e913cb1a028e7a28175bef41"},
+    {file = "PyMuPDF-1.20.2-cp39-cp39-win_amd64.whl", hash = "sha256:e9cb960e234498a4e91e4b56e2e71f4c56fd0045c7a71315df8e03a33212dbeb"},
+    {file = "PyMuPDF-1.20.2.tar.gz", hash = "sha256:02eedf01f57c6bafb5e8667cea0088a2d2522643c47100f1908bec3a68a84888"},
 ]
 pywin32 = [
     {file = "pywin32-303-cp310-cp310-win32.whl", hash = "sha256:6fed4af057039f309263fd3285d7b8042d41507343cd5fa781d98fcc5b90e8bb"},
