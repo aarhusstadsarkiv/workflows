@@ -7,26 +7,20 @@ maintainers = ["Aarhus Stadsarkiv <stadsarkiv@aarhus.dk>"]
 license = "GPL-3.0"
 readme = "README.md"
 homepage = "https://www.aarhusstadsarkiv.dk/"
-# packages = [
-#     { include = "workflows" }
-# ]
 
 [tool.poetry.dependencies]
-# workflows = { path = "./workflows/", develop = true }
 python = "^3.9"
 gooey = "^1"
 pyinstaller = "^4.3"
 pymupdf = "^1.19"
-azure-identity = "^1.5.0"
-azure-keyvault-secrets = "^4.2.0"
+# azure-identity = "^1.5.0"
+# azure-keyvault-secrets = "^4.2.0"
 azure-storage-blob = "^12.8.1"
 aiohttp = "^3.7"
-toml = "*"
+# toml = "*"
 
 [tool.poetry.dev-dependencies]
-mypy = "*"
-flake8 = "*"
-black = "*"
+
 
 # [tool.poetry.scripts]
 # workflows = "workflows.cli:main"

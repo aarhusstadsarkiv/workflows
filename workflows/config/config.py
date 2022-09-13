@@ -1,12 +1,12 @@
 import os
 import json
-import toml
+# import toml
 from typing import Dict
 from pathlib import Path
 
 CONFIG_DIR = Path.home() / ".aca" / "workflows"
 JSON_FILE = "config.json"
-TOML_FILE = "config.toml"
+# TOML_FILE = "config.toml"
 
 CONFIG_KEYS = [
     "azure_tenant_id",
@@ -32,15 +32,15 @@ CONFIG_KEYS = [
 ]
 
 
-def load_toml_configuration() -> Dict:
-    """Returns config as dict"""
-    conf = CONFIG_DIR / TOML_FILE
-    if not conf.is_file():
-        raise FileNotFoundError("Konfigurationsfilen blev ikke fundet.")
+# def load_toml_configuration() -> Dict:
+#     """Returns config as dict"""
+#     conf = CONFIG_DIR / TOML_FILE
+#     if not conf.is_file():
+#         raise FileNotFoundError("Konfigurationsfilen blev ikke fundet.")
 
-    config_dict = toml.load(conf)
-    config_dict["app_dir"] = ".aca/workflows"
-    return dict(config_dict)
+#     config_dict = toml.load(conf)
+#     config_dict["app_dir"] = ".aca/workflows"
+#     return dict(config_dict)
 
 
 def load_json_configuration() -> None:
