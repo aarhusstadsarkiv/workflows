@@ -1,8 +1,7 @@
-import codecs
 import sys
 import asyncio
+import locale
 
-# from importlib.metadata import version
 from pathlib import Path
 from typing import List
 
@@ -12,21 +11,6 @@ from workflows.commands import accessfiles, search
 from workflows.config import config
 
 
-utf8_stdout = codecs.getwriter("utf-8")(sys.stdout.buffer, "strict")
-utf8_stderr = codecs.getwriter("utf-8")(sys.stderr.buffer, "strict")
-if sys.stdout.encoding != "UTF-8":
-    sys.stdout = utf8_stdout  # type: ignore
-if sys.stderr.encoding != "UTF-8":
-    sys.stderr = utf8_stderr  # type: ignore
-
-# https://chriskiehl.com/article/packaging-gooey-with-pyinstaller
-# nonbuffered_stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
-# sys.stdout = nonbuffered_stdout
-
-# first line in @Gooey()
-# program_name=f"ACA Workflows, version {version('workflows')}",
-
-
 @Gooey(
     program_name="ACA Workflows, version 0.6.3",
     program_description="Værktøj til at arbejde med forskellige workflows",
@@ -34,6 +18,7 @@ if sys.stderr.encoding != "UTF-8":
     sidebar_title="Workflows",
     show_sidebar=True,
     default_size=(1000, 600),
+    encoding=locale.getpreferredencoding(),
     show_restart_button=True,
     show_failure_modal=False,
     show_success_modal=False,
@@ -63,7 +48,6 @@ async def main() -> None:
     # -------------------------------------------------------------------------
     sam_access = subs.add_parser(
         "accessfiles",
-        # title="accfiles",
         # dest="access-files",
         help="Lav accessfiler ud fra digitale registreringer i SAM",
     )
