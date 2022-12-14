@@ -11,7 +11,7 @@ homepage = "https://www.aarhusstadsarkiv.dk/"
 [tool.poetry.dependencies]
 python = "^3.9"
 gooey = "^1"
-pymupdf = "^1.19"
+pymupdf = "^1.21"
 # azure-identity = "^1.5.0"
 # azure-keyvault-secrets = "^4.2.0"
 azure-storage-blob = "^12.8.1"
