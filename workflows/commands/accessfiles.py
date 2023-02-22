@@ -87,6 +87,7 @@ async def generate_sam_access_files(
     ACCESS_SMALL_SIZE = int(env["SAM_ACCESS_SMALL_SIZE"])
     IMAGE_FORMATS = env["SAM_IMAGE_FORMATS"].split(" ")
     VIDEO_FORMATS = env["SAM_VIDEO_FORMATS"].split(" ")
+    AUDIO_FORMATS = env["SAM_AUDIO_FORMATS"].split(" ")
 
     # Load csv-file from SAM
     files: List[Dict] = fileio.load_csv_from_sam(csv_in)
@@ -107,6 +108,13 @@ async def generate_sam_access_files(
         data = json.loads(row["oasDataJsonEncoded"])
         legal_status: str = data.get("other_restrictions", "4")
         constractual_status: str = data.get("contractual_status", "1")
+
+        if not data.get("filename"):
+            print(
+                f"The metadata does not contain a digital file: {file_id}",
+                flush=True,
+            )
+            continue
         filename: str = data["filename"]
         out_dir = ACCESS_PATH / file_id
         Path(ACCESS_PATH / file_id).mkdir(exist_ok=True)
@@ -138,6 +146,9 @@ async def generate_sam_access_files(
             print(f"Filepath refers to a directory: {filepath}", flush=True)
             convert_errors += 1
             continue
+
+        # timeout around 700 secs per GB, due to M-drive limitations. Used by AV-converters
+        timeout: int = max(filepath.stat().st_size // 1000000, 120)
 
         # convert according to file extension
         if filepath.suffix == ".pdf":
@@ -176,12 +187,48 @@ async def generate_sam_access_files(
                 }
             )
 
+        elif filepath.suffix in AUDIO_FORMATS:
+            # Generate access copy
+            try:
+                record_file = out_dir / f"{file_id}.mp3"
+                print(
+                    f"Generating access copy of audio "
+                    f"({datetime.now().time()})"
+                    # f"({time.strftime('%H:%M:%S', time())})"
+                    f". Allocated seconds: {timeout}",
+                    flush=True,
+                )
+                converters.audio_convert(
+                    filepath, record_file, timeout=timeout, overwrite=overwrite
+                )
+            except FileExistsError:
+                print(
+                    f"Skipping conversion as {filename} already exists",
+                    flush=True,
+                )
+                convert_skipped += 1
+                continue
+            except converters.ConvertError as e:
+                print(f"ConvertError converting audio: {e}", flush=True)
+                convert_errors += 1
+                continue
+            except Exception as e:
+                print(f"Unknown error converting audio: {e}", flush=True)
+                convert_errors += 1
+                continue
+
+            # Update filedata if all went well
+            filedata.update(
+                {
+                    "record_type": "audio",
+                    "record_file": record_file,
+                }
+            )
+
         elif filepath.suffix in VIDEO_FORMATS:
             # Generate access copy
             try:
                 record_file = out_dir / f"{file_id}.mp4"
-                # timeout around 700 secs per GB, due to M-drive limitations
-                timeout: int = max(filepath.stat().st_size // 1000000, 120)
                 print(
                     f"Generating access copy of video "
                     f"({datetime.now().time()})"
@@ -311,6 +358,8 @@ async def generate_sam_access_files(
                 keys = ["thumbnail", "record_image", "web_document_url"]
             elif filedata["record_type"] == "video":
                 keys = ["thumbnail", "record_image", "record_file"]
+            elif filedata["record_type"] == "audio":
+                keys = ["record_file"]
             else:
                 keys = ["thumbnail", "record_image", "large_image"]
 

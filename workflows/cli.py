@@ -1,7 +1,7 @@
 import sys
 import asyncio
 import locale
-
+from datetime import date
 from pathlib import Path
 from typing import List
 
@@ -12,7 +12,7 @@ from workflows.config import config
 
 
 @Gooey(
-    program_name="ACA Workflows, version 0.6.3",
+    program_name=f"ACA Workflows, version {date.today().strftime('%Y-%m-%d')}",
     program_description="Værktøj til at arbejde med forskellige workflows",
     navigation="SIDEBAR",
     sidebar_title="Workflows",

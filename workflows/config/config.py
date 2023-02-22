@@ -1,5 +1,6 @@
 import os
 import json
+
 # import toml
 from typing import Dict
 from pathlib import Path
@@ -29,6 +30,7 @@ CONFIG_KEYS = [
     "sam_watermark_black",
     "sam_image_formats",
     "sam_video_formats",
+    "sam_audio_formats",
 ]
 
 
