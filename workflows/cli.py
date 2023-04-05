@@ -3,12 +3,22 @@ import asyncio
 import locale
 from datetime import date
 from pathlib import Path
-from typing import List
+from typing import List, Callable, Any
+from functools import wraps
+from importlib import metadata
 
 from gooey import Gooey, GooeyParser
 
 from workflows.commands import accessfiles, search
 from workflows.config import config
+
+
+def coro(func: Callable) -> Callable:
+    @wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        return asyncio.run(func(*args, **kwargs))
+
+    return wrapper
 
 
 @Gooey(
@@ -23,6 +33,7 @@ from workflows.config import config
     show_failure_modal=False,
     show_success_modal=False,
 )
+@coro
 async def main() -> None:
     # Load config or exit
     try:
@@ -30,12 +41,12 @@ async def main() -> None:
     except Exception as e:
         sys.exit(e)
 
-    # TODO
-    # config = load_toml_configuration()
-
     cli = GooeyParser(
         # usage="aca [-h] [--ignore-gooey] COMMAND [OPTIONS]",
         description="Collections of workflows to run"
+    )
+    cli.add_argument(
+        "--version", action="version", version=metadata.version("workflows")
     )
     subs = cli.add_subparsers(
         title="commands",
@@ -186,5 +197,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    main()
