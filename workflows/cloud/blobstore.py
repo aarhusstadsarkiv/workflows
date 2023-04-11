@@ -79,7 +79,6 @@ async def upload_files(
     filelist: List[Dict],
     overwrite: bool = False,
 ) -> None:
-
     credential = EnvironmentCredential()
     try:
         vault = SecretClient(

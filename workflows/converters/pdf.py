@@ -24,7 +24,6 @@ def thumbnails(
     page: int = 0,
     extension: str = ".jpg",
 ) -> List[Path]:
-
     # setup
     if not (in_file.is_file()) or in_file.suffix != ".pdf":
         raise FileNotFoundError(f"Input-path not a pdf-file: {in_file}")

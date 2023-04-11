@@ -13,7 +13,6 @@ def convert(
     timeout: int = 180,
     overwrite: bool = False,
 ) -> None:
-
     if not in_file.is_file():
         raise FileNotFoundError(f"Input-path not an audio file: {in_file}")
 

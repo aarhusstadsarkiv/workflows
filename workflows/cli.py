@@ -1,7 +1,8 @@
 import sys
 import asyncio
 import locale
-from datetime import date
+
+# from datetime import date
 from pathlib import Path
 from typing import List, Callable, Any
 from functools import wraps
@@ -41,16 +42,14 @@ async def main() -> None:
     # Load config or exit
     try:
         config.load_json_configuration()
-    except Exception as e:
-        sys.exit(e)
+    except Exception:
+        sys.exit()
 
     cli = GooeyParser(
         # usage="aca [-h] [--ignore-gooey] COMMAND [OPTIONS]",
         description="Collections of workflows to run"
     )
-    cli.add_argument(
-        "--version", action="version", version=__version__
-    )
+    cli.add_argument("--version", action="version", version=__version__)
     subs = cli.add_subparsers(
         title="commands",
         dest="command",
@@ -171,8 +170,8 @@ async def main() -> None:
                 overwrite=args.overwrite,
                 dryrun=args.dryrun,
             )
-        except Exception as e:
-            sys.exit(e)
+        except Exception:
+            sys.exit()
 
     elif args.command == "search":
         filters: List = []
@@ -191,8 +190,8 @@ async def main() -> None:
                 Path(args.search_result),
                 filters=filters,
             )
-        except Exception as e:
-            sys.exit(e)
+        except Exception:
+            sys.exit()
 
     else:
         print("No command chosen", flush=True)

@@ -41,7 +41,6 @@ def load_oas_backup(input: Path) -> List[Dict]:
 
 
 def load_csv_from_sam(input: Path) -> List[Dict]:
-
     if not input.is_file():
         raise FileNotFoundError("No csv-file at: " + str(input))
     if not input.suffix == ".csv":

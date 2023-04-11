@@ -20,6 +20,11 @@ azure-storage-blob = "^12.8.1"
 [tool.poetry.scripts]
 workflows = "workflows.cli:main"
 
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+flake8 = "^6.0.0"
+mypy = "^1.2.0"
+
 [tool.black]
 line-length = 79
 

@@ -24,7 +24,6 @@ async def upload_files(
     subpath: str,
     overwrite: bool = False,
 ) -> None:
-
     # Instantiate a ContainerClient directly
     container_client = ContainerClient.from_connection_string(
         os.getenv("AZURE_STORAGE_CONNECTION_STRING"), container

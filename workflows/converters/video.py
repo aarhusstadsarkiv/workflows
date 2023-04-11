@@ -21,7 +21,6 @@ def thumbnails(
     extension: str = ".png",
     offset: int = 12,
 ) -> List[Path]:
-
     # validate
     if not in_file.is_file():
         raise FileNotFoundError(f"Input-path not a video-file: {in_file}")
@@ -80,7 +79,6 @@ def convert(
     quality: int = 30,
     overwrite: bool = False,
 ) -> None:
-
     if not in_file.is_file():
         raise FileNotFoundError(f"Input-path not a video file: {in_file}")
 

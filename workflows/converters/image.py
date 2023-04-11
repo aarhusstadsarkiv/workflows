@@ -20,7 +20,6 @@ def thumbnails(
     overwrite: bool = False,
     extension: str = ".jpg",
 ) -> List[Path]:
-
     # validate
     if not in_file.is_file():
         raise FileNotFoundError(f"Input-path not a file: {in_file}")
@@ -63,7 +62,7 @@ def thumbnails(
         # https://github.com/openvinotoolkit/cvat/pull/342/commits/ \
         # 1520641ce65c4d3d90cb1011f83603a70943f479
         im_data = np.array(img)
-        img = Image.fromarray(im_data // (im_data.max() // 2 ** 8))
+        img = Image.fromarray(im_data // (im_data.max() // 2**8))
 
     # If not rbg, convert before doing more
     if img.mode != "RGB":

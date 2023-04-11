@@ -107,7 +107,7 @@ async def generate_sam_access_files(
         file_id: str = row["uniqueID"]
         data = json.loads(row["oasDataJsonEncoded"])
         legal_status: str = data.get("other_restrictions", "4")
-        constractual_status: str = data.get("contractual_status", "1")
+        contractual_status: str = data.get("contractual_status", "1")
 
         if not data.get("filename"):
             print(
@@ -128,7 +128,7 @@ async def generate_sam_access_files(
             print(f"Skipping {filename} due to legal restrictions", flush=True)
             convert_skipped += 1
             continue
-        if int(constractual_status.split(";")[0]) < 3:
+        if int(contractual_status.split(";")[0]) < 3:
             print(
                 f"Skipping {filename} due to contractual restrictions",
                 flush=True,
@@ -147,7 +147,8 @@ async def generate_sam_access_files(
             convert_errors += 1
             continue
 
-        # timeout around 700 secs per GB, due to M-drive limitations. Used by AV-converters
+        # timeout around 700 secs per GB, due to M-drive limitations.
+        # Used by AV-converters
         timeout: int = max(filepath.stat().st_size // 1000000, 120)
 
         # convert according to file extension
