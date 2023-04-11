@@ -16,6 +16,7 @@ python = ">=3.9"
 gooey = "*"
 pymupdf = "^1.19"
 azure-storage-blob = "^12.8.1"
+attrdict = "^2.0.1"
 
 [tool.poetry.scripts]
 workflows = "workflows.cli:main"
