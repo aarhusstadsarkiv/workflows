@@ -18,6 +18,7 @@ CONFIG_KEYS = [
     "acastorage_root",
     "acastorage_container",
     "m_drive_master_path",
+    "onedrive_access_path",
     "sam_backup_path",
     "sam_master_dir",
     "sam_access_dir",

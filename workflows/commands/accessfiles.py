@@ -60,13 +60,13 @@ async def generate_sam_access_files(
     # OneDrive-folder with access-files, M-drive-folder with master-files
     elif env.get("OneDrive"):
         MASTER_PATH = Path(env["M_DRIVE_MASTER_PATH"])
-        ACCESS_PATH = (
-            Path.home()
-            / "Aarhus kommune"
-            / "AFD-Aarhus Stadsarkiv - Dokumenter"
-            / "_DIGITALT_ARKIV"
-            / env["SAM_ACCESS_DIR"]
-        )
+        ACCESS_PATH = Path(env["ONEDRIVE_ACCESS_PATH"])
+        # ACCESS_PATH = (
+        #     Path.home()
+        #     / "Aarhus kommune"
+        #     / "Team Site - _DIGITALT_ARKIV"
+        #     / env["SAM_ACCESS_DIR"]
+        # )
 
     else:
         raise Exception(

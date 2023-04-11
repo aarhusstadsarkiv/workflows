@@ -1,6 +1,10 @@
+[project]
+name = "workflows"
+version = "0.6.6"
+
 [tool.poetry]
 name = "workflows"
-version = "0.6.5"
+version = "0.6.6"
 description = "Workflows for SAM used at Aarhus City Archives"
 authors = ["Claus Juhl Knudsen <cjk@aarhus.dk>"]
 license = "GPL-3.0"

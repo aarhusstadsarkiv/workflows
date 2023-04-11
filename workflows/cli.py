@@ -21,8 +21,11 @@ def coro(func: Callable) -> Callable:
     return wrapper
 
 
+__version__ = metadata.version("workflows")
+
+
 @Gooey(
-    program_name=f"ACA Workflows, version {date.today().strftime('%Y-%m-%d')}",
+    program_name=f"ACA Workflows, version {__version__}",
     program_description="Værktøj til at arbejde med forskellige workflows",
     navigation="SIDEBAR",
     sidebar_title="Workflows",
@@ -46,7 +49,7 @@ async def main() -> None:
         description="Collections of workflows to run"
     )
     cli.add_argument(
-        "--version", action="version", version=metadata.version("workflows")
+        "--version", action="version", version=__version__
     )
     subs = cli.add_subparsers(
         title="commands",
