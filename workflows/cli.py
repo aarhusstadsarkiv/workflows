@@ -6,11 +6,12 @@ import locale
 from pathlib import Path
 from typing import List, Callable, Any
 from functools import wraps
-from importlib import metadata
+
+# from importlib import metadata
 
 from gooey import Gooey, GooeyParser
 
-from workflows.commands import accessfiles, search
+from workflows.commands import accessfiles  # , search
 from workflows.config import config
 
 
@@ -22,16 +23,18 @@ def coro(func: Callable) -> Callable:
     return wrapper
 
 
-__version__ = metadata.version("workflows")
+__version__ = "ukendt version"
 
 
 @Gooey(
-    program_name=f"ACA Workflows, version {__version__}",
+    program_name="ACA Workflows",
     program_description="Værktøj til at arbejde med forskellige workflows",
     navigation="SIDEBAR",
     sidebar_title="Workflows",
     show_sidebar=True,
     default_size=(1000, 600),
+    # https://github.com/chriskiehl/Gooey/issues/520#issuecomment-576155188
+    # necessary for pyinstaller to work in --windowed mode (no console)
     encoding=locale.getpreferredencoding(),
     show_restart_button=True,
     show_failure_modal=False,
@@ -120,44 +123,44 @@ async def main() -> None:
     ###############
     # Search-parser
     ###############
-    search_backup = subs.add_parser(
-        "search",
-        help="Generér id-liste til SAM ved at filtrere backup-filen",
-    )
-    # Arguments
-    search_backup.add_argument(
-        "backup_file",
-        # metavar="Backup-fil",
-        help="Sti til backup-filen",
-        widget="FileChooser",
-        type=Path,
-        # dest="backupfile",
-        gooey_options={
-            "initial_value": str(Path.home() / "oas_backup_file.csv"),
-            "default_dir": str(Path.home()),
-            "full_width": True,
-        },
-    )
-    search_backup.add_argument(
-        "search_result",
-        # metavar="Id-list",
-        help="Sti til filen med søgereultatet",
-        widget="FileSaver",
-        type=Path,
-        # dest="searchresult",
-        gooey_options={
-            "initial_value": str(Path.home() / "Workflows" / "id-list.csv"),
-            "default_dir": str(Path.home() / "Workflows"),
-            "full_width": True,
-        },
-    ),
-    search_backup.add_argument(
-        "--storage-id",
-        # metavar="Storage-id",
-        type=str,
-        # dest="storage_id",
-        help="Filtrér backup-filen efter storage-id(er) (adskilt med komma)",
-    )
+    # search_backup = subs.add_parser(
+    #     "search",
+    #     help="Generér id-liste til SAM ved at filtrere backup-filen",
+    # )
+    # # Arguments
+    # search_backup.add_argument(
+    #     "backup_file",
+    #     # metavar="Backup-fil",
+    #     help="Sti til backup-filen",
+    #     widget="FileChooser",
+    #     type=Path,
+    #     # dest="backupfile",
+    #     gooey_options={
+    #         "initial_value": str(Path.home() / "oas_backup_file.csv"),
+    #         "default_dir": str(Path.home()),
+    #         "full_width": True,
+    #     },
+    # )
+    # search_backup.add_argument(
+    #     "search_result",
+    #     # metavar="Id-list",
+    #     help="Sti til filen med søgereultatet",
+    #     widget="FileSaver",
+    #     type=Path,
+    #     # dest="searchresult",
+    #     gooey_options={
+    #         "initial_value": str(Path.home() / "Workflows" / "id-list.csv"),
+    #         "default_dir": str(Path.home() / "Workflows"),
+    #         "full_width": True,
+    #     },
+    # ),
+    # search_backup.add_argument(
+    #     "--storage-id",
+    #     # metavar="Storage-id",
+    #     type=str,
+    #     # dest="storage_id",
+    #     help="Filtrér backup-filen efter storage-id(er) (adskilt med komma)",
+    # )
     args = cli.parse_args()
 
     if args.command == "accessfiles":
@@ -173,29 +176,28 @@ async def main() -> None:
         except Exception:
             sys.exit()
 
-    elif args.command == "search":
-        filters: List = []
-        if args.storage_id:
-            filters.append(
-                {
-                    "key": "storage_id",
-                    "value": [
-                        x.strip() for x in str(args.storage_id).split(",")
-                    ],
-                }
-            )
-        try:
-            await search.search_backup(
-                Path(args.backup_file),
-                Path(args.search_result),
-                filters=filters,
-            )
-        except Exception:
-            sys.exit()
+    # elif args.command == "search":
+    #     filters: List = []
+    #     if args.storage_id:
+    #         filters.append(
+    #             {
+    #                 "key": "storage_id",
+    #                 "value": [
+    #                     x.strip() for x in str(args.storage_id).split(",")
+    #                 ],
+    #             }
+    #         )
+    #     try:
+    #         await search.search_backup(
+    #             Path(args.backup_file),
+    #             Path(args.search_result),
+    #             filters=filters,
+    #         )
+    #     except Exception:
+    #         sys.exit()
 
     else:
-        print("No command chosen", flush=True)
-    print("", flush=True)  # add line to output window
+        print("No command chosen\n", flush=True)
 
 
 if __name__ == "__main__":

@@ -12,6 +12,14 @@ python workflows/cli.py accessfiles ../tests/test_export.csv C:/Users/azkb075/Do
 python workflows/cli.py search C:/Users/azkb075/Downloads/latest_oas_backup.csv C:/Users/azkb075/Downloads/idlist.csv --storage-id 91+00966-1 --ignore-gooey
 ```
 
+## Use
+Brug værktøjet som commandline værktøj (`--ignore-gooey`), og brug kun `accessfiles` subcommandoen:
+`poetry run workflows accessfiles C:\Users\azkb075\Downloads\csvs\sam_export.csv C:\Users\azkb075\Downloads\csvs\sam_export_done.csv  --ignore-gooey`
+
 ## Kompilering
-Se docs: https://aarhusstadsarkiv.github.io/acadocs/development/pyinstaller.html
+Virker ikke aktuelt!
+
+`poetry run pyinstaller --onefile --windowed --name workflows .\workflows\cli.py`
+
+Se eventuelt docs: https://aarhusstadsarkiv.github.io/acadocs/development/pyinstaller.html
 
