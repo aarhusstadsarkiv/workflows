@@ -1,7 +1,6 @@
 ## Workflows
 This repository contains the future replacements for the current SAM workflow BAT files. The presentation layer is Gooey in advanced mode with each workflow visible as an option in the sidebar.
 
-
 ## Development
 Call from root like so when testing the cli without Gooey:
 ```bash
@@ -22,4 +21,3 @@ Virker ikke aktuelt!
 `poetry run pyinstaller --onefile --windowed --name workflows .\workflows\cli.py`
 
 Se eventuelt docs: https://aarhusstadsarkiv.github.io/acadocs/development/pyinstaller.html
-

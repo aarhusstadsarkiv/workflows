@@ -5,7 +5,7 @@ from pathlib import Path
 from workflows.utils import fileio
 
 
-async def filter_on_storage_id(record: Dict, values: List) -> bool:
+def filter_on_storage_id(record: Dict, values: List) -> bool:
     # Storage_id is a list of storage_ids and/or barcodes
     ids: List = record["storage_id"]
     for v in values:
@@ -18,7 +18,7 @@ async def filter_on_storage_id(record: Dict, values: List) -> bool:
     return False
 
 
-async def search_backup(
+def search_backup(
     backup_file: Path, id_file: Path, filters: List[Dict]
 ) -> None:
     print("Loading and parsing backup-file. It might take a while", flush=True)
@@ -30,7 +30,7 @@ async def search_backup(
         for filter in filters:
             # Filer on storage_id
             if filter["key"] == "storage_id" and data.get("storage_id"):
-                if await filter_on_storage_id(data, filter["value"]):
+                if filter_on_storage_id(data, filter["value"]):
                     out.append(data.get("identifier"))
 
     if not out:

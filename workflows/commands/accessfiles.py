@@ -8,11 +8,11 @@ from typing import List, Dict, Union
 from pathlib import Path
 
 import workflows.converters as converters
-from workflows.cloud import blobstore2  # , blobstore
+from workflows.cloud import blobstore  # blobstore2
 from workflows.utils import fileio
 
 
-async def generate_sam_access_files(
+def generate_sam_access_files(
     csv_in: Path,
     csv_out: Path,
     no_watermark: bool = False,
@@ -372,7 +372,7 @@ async def generate_sam_access_files(
             try:
                 print(f"Uploading accessfiles for {filename}...", flush=True)
                 # await blobstore2.upload_files(paths, overwrite=overwrite)
-                await blobstore2.upload_files(
+                blobstore.upload_files(
                     paths, container, subpath=file_id, overwrite=overwrite
                 )
 
@@ -383,7 +383,7 @@ async def generate_sam_access_files(
                     filedata[k] = f"{root}/{container}/{file_id}/{name}"
 
             # except blobstore.UploadError as e:
-            except blobstore2.UploadError as e:
+            except blobstore.UploadError as e:
                 if not overwrite and "BlobAlreadyExists" in str(e):
                     print(
                         f"Aborting upload.{filename} already exists",
