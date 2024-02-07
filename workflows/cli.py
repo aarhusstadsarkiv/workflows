@@ -22,19 +22,20 @@ from workflows.config import config
     show_restart_button=True,
     show_failure_modal=False,
     show_success_modal=False,
-    menu=[{'name': 'Hjælp', 'items': [{
-        'type': 'Link',
-        'menuTitle': 'Gå til hjælpesiden',
-        'url': 'https://www.aarhusarkivet.dk'
-    }]}],
+    menu=[
+        {
+            "name": "Hjælp",
+            "items": [
+                {
+                    "type": "Link",
+                    "menuTitle": "Gå til hjælpesiden",
+                    "url": "https://www.aarhusarkivet.dk",
+                }
+            ],
+        }
+    ],
 )
 def main() -> None:
-    # Load config or exit
-    try:
-        config.load_json_configuration()
-    except Exception:
-        sys.exit()
-
     cli: GooeyParser = GooeyParser(description="Collections of workflows to run")
 
     # when using subparsers, Gooey does not support args/options outside each subparser!
@@ -139,8 +140,14 @@ def main() -> None:
         help="Filtrér backup-filen efter storage-id(er) (adskilt med komma)",
     )
 
-
     args = cli.parse_args()
+
+    # Load config or exit
+    try:
+        config.load_json_configuration()
+    except Exception as e:
+        sys.exit(e)
+
     if args.command == "accessfiles":
         try:
             accessfiles.generate_sam_access_files(
@@ -151,8 +158,8 @@ def main() -> None:
                 overwrite=args.overwrite,
                 dryrun=args.dryrun,
             )
-        except Exception:
-            sys.exit()
+        except Exception as e:
+            sys.exit(e)
 
     elif args.command == "search":
         filters: list = []
@@ -160,9 +167,7 @@ def main() -> None:
             filters.append(
                 {
                     "key": "storage_id",
-                    "value": [
-                        x.strip() for x in str(args.storage_id).split(",")
-                    ],
+                    "value": [x.strip() for x in str(args.storage_id).split(",")],
                 }
             )
         try:
@@ -171,12 +176,9 @@ def main() -> None:
                 Path(args.search_result),
                 filters=filters,
             )
-        except Exception:
-            sys.exit()
-
-    else:
-        print("No command chosen\n", flush=True)
+        except Exception as e:
+            sys.exit(e)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

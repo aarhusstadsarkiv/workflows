@@ -34,9 +34,7 @@ def thumbnails(
 
     response: List[Path] = []
     for thumb in thumbnails:
-        out_file: Path = (
-            out_dir / f"{in_file.stem}{thumb['suffix']}{extension}"
-        )
+        out_file: Path = out_dir / f"{in_file.stem}{thumb['suffix']}{extension}"
 
         if out_file.exists():
             if not overwrite:

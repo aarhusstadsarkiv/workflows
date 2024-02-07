@@ -16,7 +16,7 @@ python = ">=3.9,<3.13"
 gooey = "*"
 pymupdf = "^1.19"
 azure-storage-blob = "^12.8.1"
-attrdict = "^2.0.1"
+pillow = "^10.2.0"
 
 [tool.poetry.scripts]
 workflows = "workflows.cli:main"
@@ -28,7 +28,7 @@ mypy = "^1.2.0"
 pyinstaller = "^5.13.2"
 
 [tool.black]
-line-length = 79
+line-length = 89
 
 [build-system]
 requires = ["poetry>=1.11"]

@@ -193,8 +193,7 @@ def generate_sam_access_files(
             try:
                 record_file = out_dir / f"{file_id}.mp3"
                 print(
-                    f"Generating access copy of audio "
-                    f"({datetime.now().time()})"
+                    f"Generating access copy of audio " f"({datetime.now().time()})"
                     # f"({time.strftime('%H:%M:%S', time())})"
                     f". Allocated seconds: {timeout}",
                     flush=True,
@@ -231,8 +230,7 @@ def generate_sam_access_files(
             try:
                 record_file = out_dir / f"{file_id}.mp4"
                 print(
-                    f"Generating access copy of video "
-                    f"({datetime.now().time()})"
+                    f"Generating access copy of video " f"({datetime.now().time()})"
                     # f"({time.strftime('%H:%M:%S', time())})"
                     f". Allocated seconds: {timeout}",
                     flush=True,
@@ -322,9 +320,7 @@ def generate_sam_access_files(
                 convert_errors += 1
                 continue
             except Exception as e:
-                print(
-                    f"Exception raised when converting image: {e}", flush=True
-                )
+                print(f"Exception raised when converting image: {e}", flush=True)
                 convert_errors += 1
                 continue
 

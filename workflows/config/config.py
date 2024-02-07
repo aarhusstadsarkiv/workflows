@@ -1,13 +1,11 @@
 import os
 import json
-
-# import toml
 from typing import Dict
 from pathlib import Path
 
+
 CONFIG_DIR = Path.home() / ".aca" / "workflows"
-JSON_FILE = "config.json"
-# TOML_FILE = "config.toml"
+CONFIG_FILE = "config.json"
 
 CONFIG_KEYS = [
     "azure_tenant_id",
@@ -19,7 +17,6 @@ CONFIG_KEYS = [
     "acastorage_container",
     "m_drive_master_path",
     "onedrive_access_path",
-    "sam_backup_path",
     "sam_master_dir",
     "sam_access_dir",
     "sam_access_large_size",
@@ -35,33 +32,26 @@ CONFIG_KEYS = [
 ]
 
 
-# def load_toml_configuration() -> Dict:
-#     """Returns config as dict"""
-#     conf = CONFIG_DIR / TOML_FILE
-#     if not conf.is_file():
-#         raise FileNotFoundError("Konfigurationsfilen blev ikke fundet.")
-
-#     config_dict = toml.load(conf)
-#     config_dict["app_dir"] = ".aca/workflows"
-#     return dict(config_dict)
-
-
 def load_json_configuration() -> None:
     """Loads all CONFIG_KEYS from config.json into the environment"""
 
-    conf = CONFIG_DIR / JSON_FILE
+    conf = CONFIG_DIR / CONFIG_FILE
     if not conf.is_file():
-        raise FileNotFoundError("Konfigurationsfilen blev ikke fundet.")
+        raise FileNotFoundError(
+            "Konfigurationsfilen blev ikke fundet. Der burde ligge her i din brugermappe: '.aca/workflows/config.json'"
+        )
 
     with open(conf) as c:
         try:
             config: Dict = json.load(c)
         except ValueError as e:
-            raise ValueError(
-                f"Konfigurationsfilen kan ikke parses korrekt: {e}"
-            )
+            raise ValueError(f"Konfigurationsfilen kan ikke parses korrekt: {e}")
         else:
             for k, v in config.items():
                 if k.lower() in CONFIG_KEYS:
                     os.environ[k.upper()] = str(v)
             os.environ["APP_DIR"] = ".aca/workflows"
+            if len(CONFIG_KEYS) != len(config.keys()):
+                raise ValueError(
+                    f"Følgende config-nøgler mangler:\n\n{', '.join([x for x in CONFIG_KEYS if x not in config.keys()])}"
+                )

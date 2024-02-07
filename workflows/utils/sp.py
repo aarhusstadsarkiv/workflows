@@ -14,9 +14,7 @@ def run(cmd: List, timeout: int = 10) -> None:
     try:
         subprocess.run(cmd, check=True, capture_output=True, timeout=timeout)
     except subprocess.CalledProcessError as error:
-        raise ProcessError(
-            f"Process failed with error: {error.stderr.strip().decode()}"
-        )
+        raise ProcessError(f"Process failed with error: {error.stderr.strip().decode()}")
 
 
 def run_command(cmd: List, timeout: int = 10) -> None:
