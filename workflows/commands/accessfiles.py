@@ -8,11 +8,11 @@ from typing import List, Dict, Union
 from pathlib import Path
 
 import workflows.converters as converters
-from workflows.cloud import blobstore2  # , blobstore
+from workflows.cloud import blobstore  # blobstore2
 from workflows.utils import fileio
 
 
-async def generate_sam_access_files(
+def generate_sam_access_files(
     csv_in: Path,
     csv_out: Path,
     no_watermark: bool = False,
@@ -193,8 +193,7 @@ async def generate_sam_access_files(
             try:
                 record_file = out_dir / f"{file_id}.mp3"
                 print(
-                    f"Generating access copy of audio "
-                    f"({datetime.now().time()})"
+                    f"Generating access copy of audio " f"({datetime.now().time()})"
                     # f"({time.strftime('%H:%M:%S', time())})"
                     f". Allocated seconds: {timeout}",
                     flush=True,
@@ -231,8 +230,7 @@ async def generate_sam_access_files(
             try:
                 record_file = out_dir / f"{file_id}.mp4"
                 print(
-                    f"Generating access copy of video "
-                    f"({datetime.now().time()})"
+                    f"Generating access copy of video " f"({datetime.now().time()})"
                     # f"({time.strftime('%H:%M:%S', time())})"
                     f". Allocated seconds: {timeout}",
                     flush=True,
@@ -322,9 +320,7 @@ async def generate_sam_access_files(
                 convert_errors += 1
                 continue
             except Exception as e:
-                print(
-                    f"Exception raised when converting image: {e}", flush=True
-                )
+                print(f"Exception raised when converting image: {e}", flush=True)
                 convert_errors += 1
                 continue
 
@@ -372,7 +368,7 @@ async def generate_sam_access_files(
             try:
                 print(f"Uploading accessfiles for {filename}...", flush=True)
                 # await blobstore2.upload_files(paths, overwrite=overwrite)
-                await blobstore2.upload_files(
+                blobstore.upload_files(
                     paths, container, subpath=file_id, overwrite=overwrite
                 )
 
@@ -383,7 +379,7 @@ async def generate_sam_access_files(
                     filedata[k] = f"{root}/{container}/{file_id}/{name}"
 
             # except blobstore.UploadError as e:
-            except blobstore2.UploadError as e:
+            except blobstore.UploadError as e:
                 if not overwrite and "BlobAlreadyExists" in str(e):
                     print(
                         f"Aborting upload.{filename} already exists",

@@ -71,9 +71,7 @@ def thumbnails(
     response: List[Path] = []
     # Generate thumbnails
     for thumb in thumbnails:
-        out_file: Path = (
-            out_dir / f"{in_file.stem}{thumb.get('suffix')}{extension}"
-        )
+        out_file: Path = out_dir / f"{in_file.stem}{thumb.get('suffix')}{extension}"
 
         if out_file.exists() and not overwrite:
             raise FileExistsError(f"File already exists: {out_file}")
