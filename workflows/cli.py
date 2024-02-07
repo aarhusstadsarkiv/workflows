@@ -146,7 +146,7 @@ def main() -> None:
     try:
         config.load_json_configuration()
     except Exception as e:
-        sys.exit(e)
+        sys.exit(str(e))
 
     if args.command == "accessfiles":
         try:
@@ -159,7 +159,7 @@ def main() -> None:
                 dryrun=args.dryrun,
             )
         except Exception as e:
-            sys.exit(e)
+            sys.exit(str(e))
 
     elif args.command == "search":
         filters: list = []
@@ -177,7 +177,7 @@ def main() -> None:
                 filters=filters,
             )
         except Exception as e:
-            sys.exit(e)
+            sys.exit(str(e))
 
 
 if __name__ == "__main__":
