@@ -10,7 +10,7 @@ from workflows.config import config
 
 
 @Gooey(
-    program_name="ACA Workflows, version 0.3.1",
+    program_name="ACA Workflows, version 0.3.2",
     program_description="Værktøj til at arbejde med forskellige workflows",
     # navigation="SIDEBAR",
     sidebar_title="Workflows",
