@@ -22,7 +22,7 @@ gooey = "^1.0.8.1"
 workflows = "workflows.cli:main"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
+black = "^24.2.0"
 flake8 = "^6.0.0"
 mypy = "^1.2.0"
 pyinstaller = "^5.13.2"
