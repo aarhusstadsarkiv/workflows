@@ -14,7 +14,7 @@ include = ["pyproject.toml"]
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
 pymupdf = "^1.19"
-azure-storage-blob = "^12.8.1"
+azure-storage-blob = "^12.19.1"
 pillow = "^10.2.0"
 gooey = "^1.0.8.1"
 
